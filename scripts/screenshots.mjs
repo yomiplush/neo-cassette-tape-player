@@ -1,0 +1,16 @@
+import { chromium } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+const browser = await chromium.launch();
+const page = await browser.newPage();
+await mkdir("docs/screenshots", { recursive: true });
+await page.setViewportSize({ width: 1440, height: 1100 });
+await page.goto("http://127.0.0.1:5173");
+await page.getByRole("button", { name: "テープ棚を開く" }).click();
+await page.locator(".load-tape").first().click();
+await page.waitForTimeout(4700);
+await page.screenshot({ path: "docs/screenshots/desktop.png", fullPage: true });
+await page.setViewportSize({ width: 390, height: 844 });
+await page.screenshot({ path: "docs/screenshots/mobile.png", fullPage: true });
+await page.getByRole("button", { name: "テープ棚を開く" }).click();
+await page.screenshot({ path: "docs/screenshots/library.png", fullPage: true });
+await browser.close();

@@ -1,0 +1,44 @@
+[
+  {
+    "file": "hyak-ep1-rhythm.mp3",
+    "duration": 160.0,
+    "sha256": "0ebbf29c44929b493f63d2d563440a96b7e12eeabb32f4cc5c9af1bec69a0555",
+    "upstream_sha256": "843ddc7ba6f90c0121334f4749b565b8f3f2dac0bec4ec8df10dabd62006b6d1",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "hyak-ep3-suika.mp3",
+    "duration": 160.0,
+    "sha256": "8dbd740e9957d32c586578f9fea9971eeab968d1e3507a3770464cc416cfa7ed",
+    "upstream_sha256": "fb684210e4dbe26b80928d07c02a6948699eb669397c760b68a7618c5165aadd",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "hyak-ep4-blackhole.mp3",
+    "duration": 158.4,
+    "sha256": "113e4b91640399a46f683ec4b05eb18acda3bcabb009e5b3456615a341dd33f3",
+    "upstream_sha256": "ac50a39d42691f6c4f8433ac5496ea2ce5ea406570faa067ef578b39dda68743",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "hyak-ep5-2048.mp3",
+    "duration": 160.0,
+    "sha256": "ee27628ecd4d5b0f6a79d5f167f7923192231fef1a2cb5cd7733d09e39c57672",
+    "upstream_sha256": "f390687d18894e43c7171b99025f6b41b4bb04b578b5fbae8b5f3f4f61c44f27",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "hyak-ep6-galaxy.mp3",
+    "duration": 160.0,
+    "sha256": "34706c111825d1ae0ee118fe20dfb84b8fa4556a1bcafefc8bc0eab4b04c7047",
+    "upstream_sha256": "e7f5a16ea93b6bae64658b01f05a8705b1083ad83df22029e20619d94de21fe0",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "duru-ai-ep2-music.mp3",
+    "duration": 120.0,
+    "sha256": "97fbdc2519d7a37a4d714188a846657bea58fb222f38f58a5d5bbf6115af0d14",
+    "upstream_sha256": "46221c92b657736567a58aa359ef42cc69a430d767406793772424cad6d60f4c",
+    "license": "CC0-1.0"
+  }
+]

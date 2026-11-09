@@ -1,0 +1,46 @@
+import { test, expect } from "@playwright/test";
+test("real rendered tape signal rolls off highs, adds hiss, and obeys master mute", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const result = await page.evaluate(async () => {
+    const { CassetteAudio } = await import("/src/audio.js");
+    const NativeAudioContext = window.AudioContext;
+    window.AudioContext = class extends OfflineAudioContext {
+      constructor() {
+        super(2, 44100, 44100);
+      }
+    };
+    async function render(frequency, mute = false, silent = false) {
+      const a = new CassetteAudio();
+      a.create();
+      a.setVolume(mute ? 0 : 1);
+      if (silent) a.setMode("playing");
+      else {
+        const b = a.ctx.createBuffer(1, 44100, 44100),
+          d = b.getChannelData(0);
+        for (let i = 0; i < d.length; i++)
+          d[i] = 0.3 * Math.sin((i * 2 * Math.PI * frequency) / 44100);
+        a.start(b, 0);
+      }
+      const b = await a.ctx.startRendering();
+      clearInterval(a.dropTimer);
+      const d = b.getChannelData(0);
+      let sum = 0;
+      for (let i = 22050; i < d.length; i++) sum += d[i] ** 2;
+      return Math.sqrt(sum / (d.length - 22050));
+    }
+    const result = {
+      mid: await render(1000),
+      high: await render(14000),
+      hiss: await render(0, false, true),
+      muted: await render(1000, true),
+    };
+    window.AudioContext = NativeAudioContext;
+    return result;
+  });
+  expect(result.mid).toBeGreaterThan(0.1);
+  expect(result.high).toBeLessThan(result.mid * 0.4);
+  expect(result.hiss).toBeGreaterThan(0.002);
+  expect(result.muted).toBeLessThan(0.000001);
+});
