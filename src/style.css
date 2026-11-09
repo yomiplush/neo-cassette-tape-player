@@ -2299,3 +2299,93 @@ dialog::backdrop {
 .device-area.fixed-geometry .deck-window {grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 
 .device-area.fixed-geometry .door.door-occluder {position:absolute;transform:none!important;max-height:none;z-index:9;pointer-events:none}
+
+/* Portrait tape orientation belongs to the mechanism, not the viewport. */
+.device-area.fixed-geometry[data-tape-orientation="vertical"] .door {padding:20px 10px 16px;align-items:center}
+.device-area.fixed-geometry[data-tape-orientation="vertical"] .deck-window {width:80px;height:166px;aspect-ratio:1/2;flex:none}
+.device-area.fixed-geometry[data-tape-orientation="vertical"] #loaded-tape {width:190px;height:117px;top:0;align-self:center;justify-self:center}
+.device-area.fixed-geometry[data-tape-orientation="vertical"] #loaded-tape > .cassette {width:190px;height:117px;transform:rotate(90deg)}
+.device-area.fixed-geometry[data-tape-orientation="vertical"] .window-top,
+.device-area.fixed-geometry[data-tape-orientation="vertical"] .door-bottom {width:100%;flex:none}
+.device-area.fixed-geometry .transport button {transition:transform 85ms ease,box-shadow 85ms ease;transform:translate3d(0,0,0)}
+.device-area.fixed-geometry .transport button.pressed {transform:translate3d(0,4px,-5px);box-shadow:inset 1px 3px 6px #102b3b80,0 1px 0 #465c5e;filter:brightness(.84)}
+.device-area.fixed-geometry .transport button.pressed:active {transform:translate3d(0,5px,-6px)}
+.listening-space,.device-slot {touch-action:pinch-zoom}
+#portable-toggle {display:none;min-width:44px;min-height:44px;padding:4px 8px;align-items:center;justify-content:center;gap:6px;color:#30483f;border:1px solid #697b6655;border-radius:4px;font:8px monospace}
+#portable-toggle[aria-checked="true"] {background:#dddac5;box-shadow:inset 0 2px 3px #0d282b44}
+#portable-toggle .control-icon {width:20px;height:20px}
+@media(max-width:1024px){#portable-toggle:not([hidden]){display:flex}}
+@media(max-width:420px){#portable-toggle span{display:none}.site-header{gap:4px}.creator-links a{width:40px}}
+
+/* A bitmap shell, flat controls and no 3D compositor/update loop. */
+html[data-portable="true"] body {padding:0;background:#1f3653}
+html[data-portable="true"] #app {grid-template-rows:52px minmax(0,1fr) 0;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);background:#1f3653}
+html[data-portable="true"] .site-header {padding:0 12px;background:#b4beb3;color:#233d43;border:0;gap:10px}
+html[data-portable="true"] .site-header .wordmark {font-size:28px}
+html[data-portable="true"] .site-header .wordmark span,
+html[data-portable="true"] .header-note,
+html[data-portable="true"] .creator-links,
+html[data-portable="true"] .site-footer,
+html[data-portable="true"] .liner {display:none}
+html[data-portable="true"] #settings-open {display:flex;margin-left:auto}
+html[data-portable="true"] main {height:100%;min-height:0}
+html[data-portable="true"] .listening-space {display:block;height:100%;padding:0}
+html[data-portable="true"] .device-slot {height:100%;touch-action:auto}
+html[data-portable="true"] .device-slot > .device-area.fixed-geometry {position:relative;inset:0;width:100%;height:100%;max-width:none;max-height:none;transform:none!important;perspective:none;margin:0}
+html[data-portable="true"] .case-object {width:100%;height:100%;transform:none!important;transform-style:flat;transition:none;touch-action:auto}
+html[data-portable="true"] .case-side,
+html[data-portable="true"] .case-back,
+html[data-portable="true"] .case-glint,
+html[data-portable="true"] .case-view-controls,
+html[data-portable="true"] .player:before,
+html[data-portable="true"] .player:after {display:none!important}
+html[data-portable="true"] .device-area.fixed-geometry .player {width:100%;height:100%;min-height:0;border:0;border-radius:0;transform:none!important;backface-visibility:visible;box-shadow:none;background:var(--portable-shell) center/100% 100% no-repeat #1f3653;grid-template-columns:minmax(0,1fr) clamp(66px,18vw,160px);grid-template-rows:32px 66px minmax(0,1fr) 66px 72px;gap:6px 8px;padding:12px}
+html[data-portable="true"] .device-area.fixed-geometry .door {transform:none!important;transition:none;box-shadow:none;background:#142b3c55}
+html[data-portable="true"] .device-area.fixed-geometry .deck-window {width:clamp(72px,20vw,150px);height:min(300px,calc(100cqh - 64px));min-height:60px;box-shadow:none}
+html[data-portable="true"] .deck-window:after,
+html[data-portable="true"] .cassette:after {background:none;box-shadow:none;opacity:0}
+html[data-portable="true"] .device-area.fixed-geometry .transport {background:transparent;box-shadow:none}
+html[data-portable="true"] .device-area.fixed-geometry .transport button,
+html[data-portable="true"] .device-area.fixed-geometry .case-controls button {filter:none;box-shadow:inset 0 1px #f5edd066,0 3px #34515b;transform:none;transition:none}
+html[data-portable="true"] .device-area.fixed-geometry .transport button.pressed {transform:translateY(3px);box-shadow:inset 0 3px 4px #102b3b80;filter:brightness(.84)}
+html[data-portable="true"] .spool .reel {animation:none!important}
+html[data-portable="true"] .device-area.fixed-geometry .case-shelf {background:#18324988}
+html[data-portable="true"] .device-area.fixed-geometry .readout {background:#18324999}
+@media(max-height:600px) and (orientation:landscape){
+  html[data-portable="true"] #app {grid-template-rows:44px minmax(0,1fr) 0}
+  html[data-portable="true"] .device-area.fixed-geometry .player {grid-template-columns:minmax(0,1fr) minmax(0,1fr) 66px;grid-template-rows:32px minmax(0,1fr) 66px;padding:8px;gap:6px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .device-brand {grid-column:1;grid-row:1}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .case-topline {grid-column:2;grid-row:1}
+  html[data-portable="true"] .device-area.fixed-geometry .case-shelf {min-height:32px;height:32px;padding:4px 12px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .door-surround {grid-column:1;grid-row:2/4}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .readout {grid-column:2;grid-row:2}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .case-controls {grid-column:2;grid-row:3}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .transport {grid-column:3;grid-row:1/4}
+  html[data-portable="true"] .device-area.fixed-geometry .transport button {min-height:36px}
+}
+
+html[data-portable="true"] .device-area.fixed-geometry #loaded-tape,
+html[data-portable="true"] .device-area.fixed-geometry #loaded-tape > .cassette {width:230px;height:142px}
+@media(max-height:600px) and (orientation:landscape){
+  html[data-portable="true"] .device-area.fixed-geometry .player {grid-template-rows:44px minmax(0,1fr) 66px}
+  html[data-portable="true"] .device-area.fixed-geometry .case-shelf {min-height:44px;height:44px}
+  html[data-portable="true"] .device-area.fixed-geometry .model-number {color:var(--case-ink)}
+}
+@media(max-height:600px) and (orientation:portrait){
+  html[data-portable="true"] .device-area.fixed-geometry .player {grid-template-rows:44px minmax(0,1fr) 44px 56px;gap:6px 8px;padding:8px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .device-brand {display:none}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .case-topline {grid-row:1}
+  html[data-portable="true"] .device-area.fixed-geometry .case-shelf {height:44px;min-height:44px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .door-surround {grid-row:2}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .readout {grid-row:3}
+  html[data-portable="true"] .device-area.fixed-geometry #reset-counter {height:44px;min-height:44px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .case-controls {grid-row:4}
+  html[data-portable="true"] .device-area.fixed-geometry .case-controls button {height:56px;min-height:56px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .transport {grid-row:1/5}
+  html[data-portable="true"] .device-area.fixed-geometry #loaded-tape,
+  html[data-portable="true"] .device-area.fixed-geometry #loaded-tape > .cassette {width:190px;height:117px}
+}
+html[data-portable="true"] .device-area.fixed-geometry .case-controls button:active:not(:disabled),
+html[data-portable="true"] .device-area.fixed-geometry .transport button:active:not(:disabled) {transform:translateY(2px);box-shadow:inset 0 3px 4px #102b3b80}
+html[data-portable="true"] .device-area.fixed-geometry .transport button.pressed:active:not(:disabled) {transform:translateY(4px)}
+.device-area[data-tape-orientation="vertical"] .empty-deck > span {transform:rotate(90deg);white-space:nowrap}

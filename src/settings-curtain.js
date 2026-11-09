@@ -1,6 +1,7 @@
 // A single set of controls moves between the liner and the portrait curtain.
 export function setupSettingsCurtain({button, dialog, controls, closeButton}) {
   const portrait = matchMedia('(max-width: 1024px) and (orientation: portrait)');
+  const usesCurtain=()=>portrait.matches || document.documentElement.dataset.portable==='true';
   const home = document.createComment('sound controls home');
   controls.before(home);
   let animation = null, revision = 0;
@@ -32,7 +33,7 @@ export function setupSettingsCurtain({button, dialog, controls, closeButton}) {
     }
   };
   const close = () => {if(dialog.open && dialog.dataset.phase !== 'lifting') void animate(false);};
-  button.addEventListener('click', () => {if(portrait.matches && !dialog.open) void animate(true);});
+  button.addEventListener('click', () => {if(usesCurtain() && !dialog.open) void animate(true);});
   closeButton.addEventListener('click', close);
   dialog.addEventListener('cancel', event => {event.preventDefault();close();});
   const place = () => {
@@ -40,9 +41,10 @@ export function setupSettingsCurtain({button, dialog, controls, closeButton}) {
     if(dialog.open) dialog.close();
     button.setAttribute('aria-expanded', 'false');
     dialog.dataset.phase = 'closed';
-    if(portrait.matches) dialog.querySelector('.curtain-controls').append(controls);
+    if(usesCurtain()) dialog.querySelector('.curtain-controls').append(controls);
     else home.after(controls);
   };
   portrait.addEventListener('change', place);
+  document.addEventListener('portablechange',place);
   place();
 }

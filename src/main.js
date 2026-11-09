@@ -1,4 +1,5 @@
 import "./style.css";
+import { setupPortable } from "./portable.js";
 import { createAdaptiveRendering } from "./rendering.js";
 import { createCaseModel } from "./case-model.js";
 import { skins, applySkin } from "./skins.js";
@@ -35,6 +36,7 @@ audio.setProfile(settings.character);
 transport.setModel(settings.model);
 let displayQuality = ["low","medium","high"].includes(settings.displayQuality) ? settings.displayQuality : "auto";
 let selectedSkin = "harbor";
+let portableActive=false,portablePreference=settings.portable===true;
 let tapes = [...demos],
   busy = false,
   counterZero = 0,
@@ -63,7 +65,7 @@ const cassette = (mini = false) =>
   `<div class="cassette ${mini ? "mini" : ""}"><i class="tape-screw tl"></i><i class="tape-screw tr"></i><i class="tape-screw bl"></i><i class="tape-screw br"></i><div class="tape-label"><div class="label-top"><span class="tape-side">A</span><span>NEO SOUND ARCHIVE</span><span>STEREO</span></div><strong class="tape-title">YOUR NEXT MEMORY</strong><div class="label-rule"></div><div class="tape-window"><div class="spool left-spool"><div class="reel"></div></div><div class="tape-bridge"></div><div class="spool right-spool"><div class="reel"></div></div></div><div class="label-bottom"><span>LOW NOISE / HIGH FEELING</span><b>TYPE I</b></div></div><div class="cassette-foot"><i></i><span>● &nbsp; ▪ &nbsp; ●</span><i></i></div></div>`;
 
 $("#app").innerHTML = `
-<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE home">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><button id="settings-open" aria-label="Open settings" aria-controls="settings-curtain" aria-expanded="false">${icon("settings")}</button><nav class="creator-links" aria-label="Creator links"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush website" title="YomiPlush website"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="Support on GitHub Sponsors" title="Support on GitHub Sponsors"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
+<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE home">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><button id="settings-open" aria-label="Open settings" aria-controls="settings-curtain" aria-expanded="false">${icon("settings")}</button><button id="portable-toggle" role="switch" aria-label="Portable mode" aria-checked="false" title="Portable mode: lightweight 2D player">${icon("cassette")}<span>PORTABLE</span></button><nav class="creator-links" aria-label="Creator links"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush website" title="YomiPlush website"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="Support on GitHub Sponsors" title="Support on GitHub Sponsors"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
 <main>
  <section class="intro"><div><div class="eyebrow"><span class="tiny-dot"></span> PERSONAL STEREO / EST. 1985</div><h1>A little imperfection.<br><em>Just right.</em></h1></div><p>Pick a tape. Press play.<br>The hiss. The wobble. The memories.<br><span>A little hiss. A lot of feeling.</span></p></section>
  <section class="listening-space" aria-label="Cassette player">
@@ -98,7 +100,7 @@ $("#case-skin").value = selectedSkin;
 $("#tape-character").value = audio.profile;
 $("#case-skin").onchange = event => {selectedSkin=applySkin($(".device-area"),event.target.value);persist();};
 $("#tape-character").onchange = event => {audio.setProfile(event.target.value);persist();};
-const caseModel = createCaseModel({player:$("#player"), device:$(".device-area"), icon, isBusy:()=>busy || flipping,getBudget:()=>display.state});
+const caseModel = createCaseModel({player:$("#player"), device:$(".device-area"), icon, isBusy:()=>busy || flipping,isPortable:()=>portableActive,getBudget:()=>display.state});
 caseModel.setVariant(transport.model);
 $("#deck-model").value = transport.model;
 $("#render-quality").value = displayQuality;
@@ -115,7 +117,7 @@ setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"),
 {
   const deck = $(".device-area"), slot = document.createElement("div");
   slot.className = "device-slot";
-  deck.classList.add("fixed-geometry");
+  deck.classList.add("fixed-geometry");deck.dataset.tapeOrientation="vertical";
   deck.before(slot); slot.append(deck);
   const view=deck.querySelector(".case-view-controls");slot.append(view);
   const fit = () => {
@@ -127,6 +129,11 @@ setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"),
   const observer = new ResizeObserver(fit);
   observer.observe(slot); fit();
 }
+
+setupPortable({button:$("#portable-toggle"),preferred:portablePreference,isBusy:()=>busy || flipping,onChange:({active,preferred})=>{
+  portableActive=active;portablePreference=preferred;
+  caseModel.cancelGesture();display.setPortable(active);persist();render();
+}});
 
 document.addEventListener(
   "click",
@@ -157,6 +164,7 @@ function persist() {
       character: audio.profile,
       model: transport.model,
       displayQuality,
+      portable:portablePreference,
     })
   )
     message(
@@ -267,12 +275,15 @@ function render() {
       1000,
   ).padStart(3, "0");
   for (const [act, active] of Object.entries({
-    play: mode === "playing",
+    play: mode === "playing" || mode === "paused" || !!playController || transport.reversePending || servicePhase === "AUTO REVERSE…",
     pause: mode === "paused",
     rewind: mode === "rewinding",
     forward: mode === "forwarding",
-  }))
-    $(`[data-action="${act}"]`).classList.toggle("pressed", active);
+  })) {
+    const key=$(`[data-action="${act}"]`);
+    key.classList.toggle("pressed",active);key.setAttribute("aria-pressed",String(active));
+  }
+  $("#portable-toggle").disabled=busy || flipping;
   $$("[data-action]").forEach((b) => {
     const a = b.dataset.action;
     b.disabled =
@@ -293,6 +304,9 @@ function render() {
       `${time(transport.position)} / ${time(transport.duration)}`;
     $("#track-name").textContent = t.sides[transport.side].title;
     $("#track-author").textContent = `${t.author} · ${t.license}`;
+    for(const reel of $("#loaded-tape").querySelectorAll(".reel")) {
+      reel.style.transform=portableActive?`rotate(${transport.position*240}deg)`:"";
+    }
     const progress = transport.duration ? transport.position / transport.duration : 0;
     const p = transport.model === "auto" && transport.side === "B" ? 1-progress : progress;
     $("#position-fill").style.width = `${p * 100}%`;
@@ -405,7 +419,7 @@ function waitForMechanism(ms, signal) {
   if (signal.aborted) return Promise.resolve(false);
   return new Promise(resolve => {
     const done = () => { clearTimeout(timer); signal.removeEventListener("abort", done); resolve(!signal.aborted); };
-    const timer = setTimeout(done, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : ms);
+    const timer = setTimeout(done, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : portableActive ? Math.min(ms,80) : ms);
     signal.addEventListener("abort", done, { once: true });
   });
 }
@@ -441,12 +455,12 @@ async function service(name) {
     if (name === "flip") {
       flipping = true; render();
       await flipCassette({element:$("#loaded-tape .cassette"), nextSide:transport.side === "A" ? "B" : "A", signal,
-        reducedMotion:matchMedia("(prefers-reduced-motion: reduce)").matches,
+        reducedMotion:portableActive || matchMedia("(prefers-reduced-motion: reduce)").matches,
         commit:()=>{ if(transport.flip()){counterZero=0;audio.sound("flip");persist();render();} }
       });
       if (!signal.aborted) { audio.sound("seat"); if (!wasOpen) await moveDoor(false, signal); }
     } else {
-      render(); await ejectCassette({element:$("#loaded-tape .cassette"),signal,reducedMotion:matchMedia("(prefers-reduced-motion: reduce)").matches,
+      render(); await ejectCassette({element:$("#loaded-tape .cassette"),signal,reducedMotion:portableActive || matchMedia("(prefers-reduced-motion: reduce)").matches,
         commit:()=>{transport.eject();counterZero=0;audio.sound("seat");persist();render();} });
       if(!signal.aborted) message("Tape ejected. Choose your next tape from TAPE BOX.");
     }

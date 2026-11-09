@@ -8,5 +8,6 @@ export const skins = [
 export function applySkin(device,id) {
   const skin=skins.some(s=>s.id===id)?id:'harbor';
   device.dataset.skin=skin;
+  device.style.setProperty("--portable-shell",`url("${import.meta.env.BASE_URL}textures/portable-shell-${skin}.webp")`);
   return skin;
 }

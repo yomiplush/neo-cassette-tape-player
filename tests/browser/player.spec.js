@@ -238,8 +238,8 @@ test('demo fits one viewport with reachable controls in portrait and landscape',
       }
     }
     const tape = await page.locator('#loaded-tape .cassette').boundingBox();
-    expect(tape.width).toBeGreaterThanOrEqual(60);
-    expect(tape.height).toBeGreaterThanOrEqual(40);
+    expect(Math.max(tape.width,tape.height)).toBeGreaterThanOrEqual(60);
+    expect(Math.min(tape.width,tape.height)).toBeGreaterThanOrEqual(40);
     expect(await page.evaluate(()=>document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
   }
 });

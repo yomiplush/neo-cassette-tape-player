@@ -1,5 +1,5 @@
 // DOM geometry keeps the existing buttons as actual, clickable front-face controls.
-export function createCaseModel({player, device, icon, isBusy, getBudget = () => ({fps:30})}) {
+export function createCaseModel({player, device, icon, isBusy, isPortable=()=>false, getBudget = () => ({fps:30})}) {
   device.querySelectorAll(".device-top,.device-bottom,.device-shadow").forEach(node=>node.remove());
   const object = document.createElement('div');
   object.className = 'case-object';
@@ -22,15 +22,13 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
   view.innerHTML=`<button class="case-grip" aria-label="Rotate player" title="Turn 90 degrees, or drag. Arrow keys rotate; Home returns to front.">${icon('flip')}<span>TURN</span></button><button class="case-home" aria-label="Return player to front">${icon('arrow')}<span>FRONT</span></button>`;
   device.prepend(view);
   const grip=view.querySelector('.case-grip'), reset=view.querySelector('.case-home');
-  // The stationary toolbar may live beside the scaled model, keeping native hit targets.
-  const listen=(type,handler,options)=>{
-    device.addEventListener(type,handler,options);
-    view.addEventListener(type,event=>{if(!device.contains(view))handler(event);},options);
-  };
+  // Room whitespace and model controls share one pointer stream, even after capture.
+  const listen=(type,handler,options)=>document.addEventListener(type,handler,options);
   let yaw=0,pitch=0,gesture=null,suppressUntil=0,frame=null,lastPaint=0;
   const faces = {front:player,back,left:object.querySelector('.case-side-left'),right:object.querySelector('.case-side-right'),top:object.querySelector('.case-side-top'),bottom:object.querySelector('.case-side-bottom')};
   let sizingFrame=null;
   const depth = () => {
+    if(isPortable())return;
     const auto = device.dataset.model === 'auto';
     const size = Math.max(auto ? 48 : 50, Math.min(auto ? 88 : 96, object.offsetWidth * (auto ? .16 : .19)));
     if(device.style.getPropertyValue('--case-depth')===`${size}px`)return;
@@ -82,10 +80,12 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
   reset.addEventListener('click',()=>home());
   listen('pointerdown',event=>{
     suppressUntil=0;
-    if(!event.isPrimary || event.button!==0 || isBusy())return;
+    if(!event.isPrimary || event.button!==0 || isBusy() || isPortable())return;
     const interactive=event.target.closest('button,input,select,a,label');
     if(interactive && !interactive.matches('.window-latch,.case-grip'))return;
-    if(!event.target.closest('.case-object,.case-grip'))return;
+    if(event.target.closest('dialog,.liner,.site-header,.site-footer') && !event.target.closest('.case-grip'))return;
+    const blank=event.target.matches('html,body,#app,main,.listening-space,.device-slot,.device-area');
+    if(!blank && !event.target.closest('.case-object,.case-grip'))return;
     gesture={id:event.pointerId,x:event.clientX,y:event.clientY,yaw,pitch,dragging:false};
   });
   listen('pointermove',event=>{
@@ -106,13 +106,16 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
   listen('click',event=>{
     if(event.detail!==0 && performance.now()<suppressUntil){event.preventDefault();event.stopImmediatePropagation();}
   },true);
-  grip.addEventListener('click',()=>{if(!isBusy()){yaw+=90;paint();}});
+  grip.addEventListener('click',()=>{if(!isBusy() && !isPortable()){yaw+=90;paint();}});
   grip.addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(event.key))return;
-    event.preventDefault();event.stopPropagation();if(isBusy())return;
+    event.preventDefault();event.stopPropagation();if(isBusy() || isPortable())return;
     if(event.key==='Home')home();
     else {yaw+=event.key==='ArrowLeft'?-20:event.key==='ArrowRight'?20:0;pitch=Math.max(-65,Math.min(65,pitch+(event.key==='ArrowUp'?15:event.key==='ArrowDown'?-15:0)));paint();}
   });
   paint();setVariant(device.dataset.model);
-  return {home,setVariant};
+  return {home,setVariant,cancelGesture(){
+    if(gesture && device.hasPointerCapture(gesture.id))device.releasePointerCapture(gesture.id);
+    gesture=null;home({animate:false});
+  }};
 }

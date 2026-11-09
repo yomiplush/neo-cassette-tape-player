@@ -23,6 +23,7 @@ test('auto-reverse keeps the door shut, plays the other side from zero and stops
   await expect(page.locator('.model-number')).toContainText('NR-88');
   await page.getByRole('button',{name:'Play',exact:true}).click();
   await expect(page.locator('#status')).toHaveText('AUTO REVERSE…');
+  await expect(page.getByRole('button',{name:'Play',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#player')).not.toHaveClass(/door-open/);
   await expect(page.locator('.flip-stage')).toHaveCount(0);
   await expect(page.locator('#side-label')).toHaveText('B');

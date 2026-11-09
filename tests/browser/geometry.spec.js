@@ -8,8 +8,8 @@ test('desktop settings fit without an internal scrollbar and the window fits the
     const metrics=await page.locator('.liner').evaluate(e=>({height:e.clientHeight,content:e.scrollHeight}));
     expect(metrics.content,`${width}x${height} sidebar`).toBeLessThanOrEqual(metrics.height+1);
     const window=await page.locator('.deck-window').boundingBox();
-    expect(window.width/window.height,`${width}x${height} window`).toBeGreaterThan(3.0);
-    expect(window.width/window.height).toBeLessThan(3.6);
+    expect(window.height/window.width,`${width}x${height} window`).toBeGreaterThan(1.8);
+    expect(window.height/window.width).toBeLessThan(2.2);
   }
 });
 

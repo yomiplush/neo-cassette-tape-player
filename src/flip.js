@@ -19,9 +19,11 @@ async function serviceTape({element,nextSide,commit,signal,reducedMotion,eject})
   Object.assign(cover.style,{left:`${-door.clientLeft}px`,top:`${-door.clientTop}px`,width:`${w}px`,height:`${h}px`,clipPath:`polygon(evenodd,0px 0px,${w}px 0px,${w}px ${h}px,0px ${h}px,0px 0px,${x}px ${y}px,${r}px ${y}px,${r}px ${b}px,${x}px ${b}px,${x}px ${y}px)`});
   door.append(cover);
   const origin={left:wrapper.offsetLeft+element.offsetLeft,top:wrapper.offsetTop+element.offsetTop};
-  const lift=origin.top+element.offsetHeight+pocket.offsetTop+16;
+  const vertical=element.closest(".device-area")?.dataset.tapeOrientation==="vertical";
+  const extent=vertical?(element.offsetHeight+element.offsetWidth)/2:element.offsetHeight;
+  const lift=origin.top+extent+pocket.offsetTop+16;
   const halfDepth=parseFloat(stage.style.getPropertyValue('--half-depth'));
-  const pose=(y=0,z=0,turn=0)=>`translate3d(0,${y}px,${z-halfDepth}px) rotateY(${turn}deg)`;
+  const pose=(y=0,z=0,turn=0)=>`translate3d(0,${y}px,${z-halfDepth}px) rotateY(${turn}deg) rotateZ(${vertical?90:0}deg)`;
   let animation,faceFrame=null;
   const front=object.querySelector(".flip-front"),back=object.querySelector(".flip-back");
   const showBack=value=>{front.style.visibility=value?"hidden":"visible";back.style.visibility=value?"visible":"hidden";};
@@ -56,7 +58,7 @@ async function serviceTape({element,nextSide,commit,signal,reducedMotion,eject})
     object.style.transform=pose(-lift);animation.cancel();
     stage.classList.add('tape-in-front');cover.hidden=true;
     stage.dataset.phase=eject?'ejecting':'turning';
-    const sceneScale=element.getBoundingClientRect().width/element.offsetWidth;
+    const sceneScale=wrapper.getBoundingClientRect().width/wrapper.offsetWidth;
     const frontY=Math.max(60-bounds.top,0)/sceneScale;
     await animate([{transform:pose(-lift)},{transform:pose(-lift,70),offset:.18},{transform:pose(-lift+frontY,70,eject?-20:180),opacity:eject?0:1,offset:.75},{transform:pose(-lift,70,eject?-20:180),opacity:eject?0:1,offset:.9},{transform:pose(-lift,0,eject?-20:180),opacity:eject?0:1}],eject?600:1000,!eject);
     if(signal.aborted)return;
@@ -82,7 +84,11 @@ function makeTapeBody(element,nextSide) {
   for(const back of [false,true]) {
     const face=document.createElement("div");face.className=`flip-face ${back?"flip-back":"flip-front"}`;
     const tape=element.cloneNode(true);tape.style.setProperty("--tape-color",getComputedStyle(element).getPropertyValue("--tape-color"));
-    if(back)tape.querySelector(".tape-side").textContent=nextSide;
+    if(back){
+      tape.querySelector(".tape-side").textContent=nextSide;
+      // A portrait rear face needs the same upright seating orientation after the turn.
+      if(element.closest(".device-area")?.dataset.tapeOrientation==="vertical")face.style.transform="rotateY(180deg) translateZ(var(--half-depth)) rotateZ(180deg)";
+    }
     face.append(tape);object.append(face);
   }
   for(const side of ["top","bottom","left","right"]){const edge=document.createElement("div");edge.className=`flip-edge flip-edge-${side}`;object.append(edge);}

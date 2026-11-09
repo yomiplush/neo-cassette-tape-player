@@ -5,8 +5,9 @@ export function createAdaptiveRendering({override='auto',isActive=()=>false}={})
   const governor=new AdaptiveQuality({cores:navigator.hardwareConcurrency,memory:navigator.deviceMemory,saveData:navigator.connection?.saveData});
   const valid=['auto','low','medium','high'].includes(override)?override:'auto';
   governor.setOverride(valid);
-  let frame=null,lastFrame=0,activeUntil=0,lastTier='';
+  let frame=null,lastFrame=0,activeUntil=0,lastTier='',portable=false;
   const apply=()=>{
+    if(portable){document.documentElement.dataset.frameRate="0";return;}
     const state=governor.state;
     if(state.tier===lastTier)return;
     lastTier=state.tier;
@@ -19,13 +20,14 @@ export function createAdaptiveRendering({override='auto',isActive=()=>false}={})
   };
   const sample=now=>{
     frame=null;
-    if(document.hidden){lastFrame=0;return;}
+    if(document.hidden || portable){lastFrame=0;return;}
     if(lastFrame)governor.sample(now-lastFrame);
     lastFrame=now;apply();
     if(isActive() || now<activeUntil)frame=requestAnimationFrame(sample);
     else {lastFrame=0;governor.resetSamples();}
   };
   const wake=()=>{
+    if(portable)return;
     activeUntil=performance.now()+4000;
     if(frame===null && !document.hidden){lastFrame=0;frame=requestAnimationFrame(sample);}
   };
@@ -36,5 +38,5 @@ export function createAdaptiveRendering({override='auto',isActive=()=>false}={})
     if(!document.hidden)wake();
   });
   apply();
-  return {get state(){return governor.state;},wake,setOverride(value){governor.setOverride(value);apply();wake();}};
+  return {get state(){return portable?{...governor.state,fps:0,uiInterval:160}:governor.state;},setPortable(value){portable=!!value;if(frame!==null)cancelAnimationFrame(frame);frame=null;lastFrame=0;lastTier="";governor.resetSamples();apply();if(!portable)wake();},wake,setOverride(value){governor.setOverride(value);apply();wake();}};
 }

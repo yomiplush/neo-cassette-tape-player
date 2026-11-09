@@ -231,10 +231,25 @@ Regenerate the lightweight material assets from the original SVGs with `node scr
 <img src="docs/screenshots/case-depth.png" alt="Thicker six-face case with a clean stationary toolbar" width="260"> <img src="docs/screenshots/model-nr88.png" alt="Original NR-88 auto-reverse model" width="260">
 
 
-The cassette window and shell share a 1.62:1 aspect ratio, with a close-fitting pocket across viewport sizes. Manual FLIP and EJECT first lift the tape behind the glass, then bring it forward only after its lower edge clears the window. FLIP turns the tape in front of the deck, moves it back above the window, and lowers it behind the glass. Reduced motion changes the side immediately; resizing or cancelling the operation cleans up the temporary model. Auto-reverse changes direction internally without extracting the tape.
+The cassette keeps its 1.62:1 shell proportions and is installed vertically, with a matching portrait viewing aperture. Manual FLIP and EJECT first lift the tape behind the glass, then bring it forward only after its lower edge clears the window. FLIP turns the tape in front of the deck, moves it back above the window, and lowers it behind the glass. Reduced motion changes the side immediately; resizing or cancelling the operation cleans up the temporary model. Auto-reverse changes direction internally without extracting the tape.
 
 
-The enclosure now uses fixed 400 × 500 logical geometry on every screen. Window size changes apply one uniform scene scale; the shell, window, controls and side depth never stretch or rearrange. The stationary TURN / FRONT toolbar keeps its native size. Very short landscape screens scale the physical buttons with the model (at least 24 CSS px in the tested phone sizes); normal portrait controls retain 44 px targets. Compact portrait layouts omit the optional liner strip to preserve the enclosure and controls.
+The 3D enclosure uses fixed 400 × 500 logical geometry on every screen. Window size changes apply one uniform scene scale; the shell, window, controls and side depth never stretch or rearrange. The stationary TURN / FRONT toolbar keeps its native size. Very short landscape screens scale the physical buttons with the model (at least 24 CSS px in the tested phone sizes); normal portrait controls retain 44 px targets. Compact portrait layouts omit the optional liner strip to preserve the enclosure and controls.
 
 
 The current enclosure is an original NEO field stereo, with a navy front, a narrow smoked reel window, a brushed-metal transport spine, and five vertical mechanical keys. It includes no headphones or real manufacturer branding. Other NEO finishes and the two transport models remain selectable. A temporary opaque door surface masks the cassette outside the narrow aperture while it is lifted or seated; it moves in front only after fully clearing the door's upper lip.
+
+
+## Portable 2D mode and mechanical keys
+
+On phones and tablets up to 1024 CSS px wide, the cassette-image **PORTABLE** switch in the header changes the same player into a flat, screen-sized 2D panel. The mode preference is saved. Returning to a larger desktop screen restores the 3D presentation; returning to a supported device restores the preferred portable presentation. Switching does not stop audio, change sides, lose position, or recreate the audio engine.
+
+The original shell material is baked into five small WebP images (about 14 KB combined). The live buttons, counter, cassette and audio remain interactive. Portable mode hides all side/back geometry and reflections, removes perspective, suspends the adaptive renderer's animation-frame monitor, and updates its lightweight UI/reel pose every 160 ms while active. It uses a short, flat side change instead of the 3D extraction animation. Settings remain available behind the curtain in either device orientation. Manual and auto-reverse transport behavior is preserved.
+
+In 3D mode, dragging either the model or the blank room background rotates it. Buttons, links, sliders, the liner and dialogs retain their own interactions. Portable mode ignores rotation gestures.
+
+PLAY, REW and F.FWD keys latch visibly into the enclosure. Selecting another transport releases the previous key; PAUSE retains PLAY and latches the pause key, and STOP or the final end of the playback cycle releases them; auto-reverse keeps PLAY latched through its direction change. Accessible `aria-pressed` states follow the same mechanism. The same latching feel is rendered as a cheap 2D inset in portable mode.
+
+To regenerate the material images from the original code-native enclosure, run the development server and `node scripts/prepare-portable.mjs`. Normal builds use the checked-in images and do not require ffmpeg or a screenshot pass.
+
+<img src="docs/screenshots/portable-mobile.png" alt="Screen-sized flat portable mode with a portrait cassette" width="220"> <img src="docs/screenshots/portable-landscape.png" alt="Portable mode in a phone landscape viewport" width="440">
