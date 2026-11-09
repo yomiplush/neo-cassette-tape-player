@@ -78,6 +78,7 @@ export class CassetteAudio {
     this.motorGain.gain.value = 0;
     this.motor.connect(this.motorGain).connect(this.master);
     this.motor.start();
+    this.createWinding();
     this.setWear(this.wear);
     this.clock = c.currentTime;
     this.dropTimer = setInterval(() => {
@@ -173,6 +174,7 @@ export class CassetteAudio {
     this.mode = mode;
     if (mode !== "playing") this.stopSource();
     this.ambience();
+    this.setSpoolPosition(this.spoolPosition ?? 0.5);
   }
   ambience() {
     if (!this.ctx) return;
@@ -188,40 +190,137 @@ export class CassetteAudio {
       this.ctx.currentTime,
       0.05,
     );
+    this.windEnvelope.gain.setTargetAtTime(
+      winding ? 0.9 : 0,
+      this.ctx.currentTime,
+      winding ? 0.09 : 0.035,
+    );
     this.motor.frequency.setTargetAtTime(
-      winding ? 210 : 72,
+      winding ? 155 : 72,
       this.ctx.currentTime,
       0.08,
     );
+  }
+  createWinding() {
+    const c = this.ctx;
+    this.windEnvelope = c.createGain();
+    this.windEnvelope.gain.value = 0;
+    const wheel = c.createGain();
+    wheel.gain.value = 0.8;
+    wheel.connect(this.windEnvelope).connect(this.master);
+    this.windTones = [];
+    for (const [frequency, type, volume] of [
+      [125, "sawtooth", 0.18],
+      [465, "sine", 0.045],
+      [980, "sine", 0.022],
+    ]) {
+      const osc = c.createOscillator(),
+        gain = c.createGain(),
+        filter = c.createBiquadFilter();
+      osc.type = type;
+      osc.frequency.value = frequency;
+      gain.gain.value = volume;
+      filter.type = "lowpass";
+      filter.frequency.value = 2300;
+      osc.connect(filter).connect(gain).connect(wheel);
+      osc.start();
+      this.windTones.push({ osc, frequency });
+    }
+    const gear = c.createOscillator(),
+      pulse = c.createGain(),
+      wobble = c.createGain();
+    gear.type = "triangle";
+    gear.frequency.value = 17.5;
+    pulse.gain.value = 0.19;
+    wobble.gain.value = 24;
+    gear.connect(pulse).connect(wheel.gain);
+    gear.connect(wobble).connect(this.windTones[1].osc.frequency);
+    gear.start();
+    const friction = c.createBufferSource(),
+      band = c.createBiquadFilter(),
+      frictionGain = c.createGain();
+    friction.buffer = this.noiseBuffer;
+    friction.loop = true;
+    band.type = "bandpass";
+    band.frequency.value = 1450;
+    band.Q.value = 0.75;
+    frictionGain.gain.value = 0.07;
+    friction.connect(band).connect(frictionGain).connect(wheel);
+    friction.start();
+  }
+  setSpoolPosition(fraction) {
+    this.spoolPosition = Math.max(0, Math.min(1, fraction));
+    if (!this.ctx || !["forwarding", "rewinding"].includes(this.mode)) return;
+    const reverse = this.mode === "rewinding";
+    const ratio =
+      (0.88 + 0.28 * (reverse ? 1 - this.spoolPosition : this.spoolPosition)) *
+      (reverse ? 1.07 : 1);
+    for (const { osc, frequency } of this.windTones)
+      osc.frequency.setTargetAtTime(
+        frequency * ratio,
+        this.ctx.currentTime,
+        0.12,
+      );
   }
   sound(kind = "click") {
     if (!this.ctx) return;
     const c = this.ctx,
       now = c.currentTime;
-    const door = kind === "door",
-      squeak = kind === "squeak";
-    const duration = squeak ? 0.27 : door ? 0.18 : 0.055;
-    const src = squeak ? c.createOscillator() : c.createBufferSource();
-    if (squeak) {
-      src.type = "sine";
-      src.frequency.setValueAtTime(1700, now);
-      src.frequency.exponentialRampToValueAtTime(380, now + duration);
-    } else src.buffer = this.noiseBuffer;
-    const filter = c.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.value = door ? 480 : 1900;
-    filter.Q.value = 1;
-    const gain = c.createGain();
-    gain.gain.setValueAtTime(squeak ? 0.045 : door ? 0.3 : 0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    src.connect(filter).connect(gain).connect(this.master);
-    src.start();
-    src.stop(now + duration);
-    src.onended = () => {
-      src.disconnect();
-      filter.disconnect();
-      gain.disconnect();
-    };
+    // Two separate impacts: the latch catches, then its spring bounces back.
+    const taps =
+      kind === "click"
+        ? [
+            { at: 0, duration: 0.024, frequency: 1850, volume: 0.3 },
+            { at: 0.029, duration: 0.052, frequency: 630, volume: 0.2 },
+          ]
+        : [
+            {
+              at: 0,
+              duration:
+                kind === "door"
+                  ? 0.18
+                  : kind === "flip"
+                    ? 0.16
+                    : kind === "seat"
+                      ? 0.11
+                      : 0.25,
+              frequency:
+                kind === "door"
+                  ? 480
+                  : kind === "flip"
+                    ? 1100
+                    : kind === "seat"
+                      ? 620
+                      : 1800,
+              volume: kind === "flip" ? 0.075 : kind === "squeak" ? 0.06 : 0.3,
+            },
+          ];
+    for (const tap of taps) {
+      const when = now + tap.at,
+        squeak = kind === "squeak";
+      const src = squeak ? c.createOscillator() : c.createBufferSource();
+      if (squeak) {
+        src.type = "sine";
+        src.frequency.setValueAtTime(1650, when);
+        src.frequency.exponentialRampToValueAtTime(340, when + tap.duration);
+      } else src.buffer = this.noiseBuffer;
+      const filter = c.createBiquadFilter(),
+        gain = c.createGain();
+      filter.type = "bandpass";
+      filter.frequency.value = tap.frequency;
+      filter.Q.value = 0.8;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.setValueAtTime(tap.volume, when);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + tap.duration);
+      src.connect(filter).connect(gain).connect(this.master);
+      src.start(when);
+      src.stop(when + tap.duration);
+      src.onended = () => {
+        src.disconnect();
+        filter.disconnect();
+        gain.disconnect();
+      };
+    }
   }
   delta() {
     if (!this.ctx) return 0;

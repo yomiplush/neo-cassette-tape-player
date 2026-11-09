@@ -1,6 +1,7 @@
 import "./style.css";
 import { TapeTransport } from "./transport.js";
 import { CassetteAudio } from "./audio.js";
+import { flipCassette } from "./flip.js";
 import {
   demos,
   readSettings,
@@ -9,6 +10,9 @@ import {
   storeTape,
   deleteTape,
 } from "./library.js";
+
+document.documentElement.dataset.edition =
+  import.meta.env.MODE === "selfhost" ? "selfhost" : "demo";
 
 const $ = (s) => document.querySelector(s);
 const settings = readSettings(),
@@ -25,7 +29,8 @@ let tapes = [...demos],
   counterZero = 0,
   lastMode = "",
   toastTimer,
-  lastSqueak = 0,
+  flipping = false,
+  flipController = null,
   generation = 0,
   playController = null;
 const esc = (s) =>
@@ -67,7 +72,40 @@ $("#app").innerHTML = `
 <dialog id="import-dialog" aria-labelledby="import-heading"><form id="import-form"><div class="dialog-header"><div><div class="eyebrow">MAKE A MIXTAPE</div><h2 id="import-heading">音楽に、居場所を。</h2></div><button type="button" class="close-dialog" aria-label="取り込み画面を閉じる">×</button></div><p class="dialog-intro">A面とB面に一曲ずつ。あなたの音源を一本のテープに。</p><label class="form-label">テープの名前<input name="title" maxlength="40" placeholder="例：帰り道のミックス" required></label><label class="form-label file-label">SIDE A <span>必須</span><input name="sideA" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" required></label><label class="form-label file-label">SIDE B <span>省略するとA面を両面に収録</span><input name="sideB" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"></label><p class="form-hint">各面 30 MB・10分まで。MP3 / WAV / M4A など、ブラウザが再生できる形式。サーバーへの送信はありません。</p><button class="primary import-submit" type="submit">テープを作る <span>↗</span></button><p id="import-status" role="status"></p></form></dialog>
 <dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">少し、手間を楽しもう。</h2></div><button class="close-dialog" aria-label="説明を閉じる">×</button></div><div class="manual"><p><b>01 / テープを選ぶ</b>棚から選ぶと、蓋が開いてテープが入ります。交換は停止してから。</p><p><b>02 / ボタンを押す</b>▶ で再生。Ⅱ で一時停止。◀◀ / ▶▶ は12倍速で巻き取り、■ で停止。終端ではカチッと自動停止します。</p><p><b>03 / 裏返す</b>■ → OPEN → FLIP → CLOSE。A/B面ごとの位置を記憶します。RESET はカウンター表示だけをゼロにします。</p><p><b>04 / くたびれ具合を選ぶ</b>ヒス、音の揺れ、高域の丸み、歪み、軽い音抜けを再現。劣化量が最小でもテープらしさは残ります。</p><p>キーボード：Space 再生 / 一時停止、← / → 巻き取り、S 停止、E 蓋、F 裏返す。スマホでは最初の操作で音声を有効にします。画面を離れると停止し、戻ったら手動で再生できます。</p><p class="form-hint">架空の機種を表現したシミュレーションです。録音機能や実在機の全機能を再現するものではありません。</p></div></dialog>
 <dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="クレジットを閉じる">×</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 は独自のデザインです。参照写真、実在メーカーのロゴ、製品画像は同梱していません。</p><p><b>MUSIC / CC0 1.0</b>6曲のデモ音源は DURU-AI / uncle-sheepsky のオリジナル楽曲。公開リポジトリから取得し、128 kbps MP3 に変換しています。曲名・作者・元の許諾を保持しています。</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">音源のソースリポジトリ ↗</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">音源の CC0 ライセンス全文 ↗</a></p><p>テープのタイトルは、このプレイヤー独自の編集タイトルです。収録曲の正式タイトルは再生画面と棚に表示しています。取り込み音源の権利は元の権利者に帰属します。</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub ↗</a></p></div></dialog>
-<div id="toast" role="status" aria-live="polite"></div>`;
+<div class="mobile-dock-shade" aria-hidden="true"></div><div id="toast" role="status" aria-live="polite"></div>`;
+
+// Move the same controls outside the case stacking context on pocket-sized screens.
+// No duplicate buttons/listeners: focus and transport state survive orientation changes.
+if (import.meta.env.MODE === "selfhost") {
+  const media = matchMedia(
+      "(max-width: 900px), (max-width: 1100px) and (max-height: 500px)",
+    ),
+    dock = document.createElement("div");
+  dock.className = "transport-dock";
+  document.body.append(dock);
+  const labels = $(".transport-labels"),
+    keys = $(".transport"),
+    home = $(".device-footer");
+  const place = () => {
+    if (media.matches) dock.append(labels, keys);
+    else home.before(labels, keys);
+  };
+  place();
+  media.addEventListener("change", place);
+}
+
+document.addEventListener(
+  "click",
+  (e) => {
+    const button = e.target.closest("button");
+    if (!button || button.disabled || button.matches("[data-action]")) return;
+    audio
+      .unlock()
+      .then(() => audio.sound("click"))
+      .catch(() => {});
+  },
+  true,
+);
 
 function message(text) {
   $("#toast").textContent = text;
@@ -166,7 +204,15 @@ function render() {
     rewinding: "REW ◂◂",
     forwarding: "FF ▸▸",
   };
-  $("#status").textContent = busy ? "LOADING…" : !t ? "NO TAPE" : names[mode];
+  $("#status").textContent = flipping
+    ? "FLIPPING…"
+    : busy
+      ? "LOADING…"
+      : !t
+        ? "NO TAPE"
+        : names[mode];
+  $("#player").classList.toggle("flipping", flipping);
+  $$(".shelf-trigger").forEach((b) => (b.disabled = flipping));
   $("#led").classList.toggle("on", mode === "playing");
   $("#counter").textContent = String(
     ((Math.floor((transport.position - counterZero) * 1.8) % 1000) + 1000) %
@@ -272,7 +318,6 @@ async function play() {
     audio.delta();
     transport.play();
     audio.start(buffer, transport.position);
-    audio.sound("click");
   } finally {
     clearTimeout(timer);
     if (playController === controller) playController = null;
@@ -289,13 +334,11 @@ async function control(name) {
     else {
       transport.pause();
       audio.setMode(transport.mode);
-      audio.sound();
     }
   }
   if (name === "stop") {
     transport.stop();
     audio.setMode("stopped");
-    audio.sound();
     persist();
   }
   if (name === "rewind" || name === "forward") {
@@ -309,10 +352,49 @@ async function control(name) {
     else message("先に ■ STOP を押すと、蓋が開きます。");
   }
   if (name === "flip") {
-    if (transport.flip()) {
-      audio.sound("door");
-      counterZero = 0;
-      persist();
+    if (!transport.tape || !transport.open) return;
+    const tapeBounds = $("#loaded-tape .cassette").getBoundingClientRect();
+    const pocket =
+      import.meta.env.MODE === "selfhost" &&
+      matchMedia(
+        "(max-width: 900px), (max-width: 1100px) and (max-height: 500px)",
+      ).matches;
+    const availableHeight = pocket
+      ? $(".transport-labels").getBoundingClientRect().top - 12
+      : innerHeight - 15;
+    if (tapeBounds.top < 100 || tapeBounds.bottom > availableHeight) {
+      window.scrollBy(
+        0,
+        tapeBounds.top -
+          Math.max(100, (availableHeight - tapeBounds.height) / 2),
+      );
+    }
+    flipping = true;
+    const controller = new AbortController();
+    flipController = controller;
+    render();
+    const resized = () => controller.abort();
+    window.addEventListener("resize", resized);
+    try {
+      await flipCassette({
+        element: $("#loaded-tape .cassette"),
+        nextSide: transport.side === "A" ? "B" : "A",
+        signal: controller.signal,
+        reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
+        commit: () => {
+          if (transport.flip()) {
+            counterZero = 0;
+            audio.sound("flip");
+            persist();
+            render();
+          }
+        },
+      });
+      if (!controller.signal.aborted) audio.sound("seat");
+    } finally {
+      window.removeEventListener("resize", resized);
+      flipping = false;
+      flipController = null;
     }
   }
   if (name === "eject") {
@@ -337,9 +419,13 @@ function cancelPlayback() {
 function dispatch(name) {
   if (name === "stop" && playController) {
     cancelPlayback();
-    audio.sound();
+    audio.sound("click");
     persist();
-  } else action(() => control(name));
+  } else
+    action(() => {
+      audio.sound("click");
+      return control(name);
+    });
 }
 $$("[data-action]").forEach(
   (b) => (b.onclick = () => dispatch(b.dataset.action)),
@@ -376,7 +462,6 @@ $("#import-open").onclick = () => {
 };
 $("#reset-counter").onclick = () => {
   counterZero = transport.position;
-  audio.sound();
   render();
 };
 $("#volume").oninput = (e) => {
@@ -499,6 +584,7 @@ function advance() {
   return ended;
 }
 function interrupt() {
+  flipController?.abort();
   cancelPlayback();
   advance();
   transport.stop();
@@ -525,13 +611,8 @@ setInterval(() => {
     audio.setMode("stopped");
     render();
   }
-  if (
-    ["rewinding", "forwarding"].includes(transport.mode) &&
-    performance.now() - lastSqueak > 1800
-  ) {
-    audio.sound("squeak");
-    lastSqueak = performance.now();
-  }
+  if (transport.duration)
+    audio.setSpoolPosition(transport.position / transport.duration);
   render();
 }, 80);
 setInterval(() => {

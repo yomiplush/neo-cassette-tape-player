@@ -1607,3 +1607,500 @@ dialog::backdrop {
 .tape-card .cassette {
   --tape-color: inherit;
 }
+/* The tape leaves the smoked window, turns edge-on, and seats on its other face. */
+.flip-stage {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  perspective: 900px;
+  filter: drop-shadow(0 18px 12px #101b2360);
+}
+.flip-object {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(1px);
+}
+.flip-back {
+  transform: rotateY(180deg) translateZ(1px);
+}
+.flip-face .cassette {
+  width: 100%;
+  height: 100%;
+}
+.flipping .deck-window:after {
+  opacity: 0.2;
+}
+/* Forty years of pockets, dusty shelves and summer windows. Original SVG patina. */
+.player {
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 15% 5%, #788b7350, transparent 45%),
+    radial-gradient(ellipse at 95% 90%, #0c222b80, transparent 42%),
+    repeating-linear-gradient(0deg, #ffffff02 0 1px, #00000008 1px 3px),
+    linear-gradient(115deg, #3d6870, #28515b 60%, #203e49);
+  border-top-color: #8b9781;
+  border-left-color: #839280;
+  box-shadow:
+    inset 2px 2px 2px #c5c5a94f,
+    inset -4px -3px 4px #07161b90,
+    4px 8px 0 #17333b,
+    6px 10px 0 #788472,
+    8px 12px 0 #4a574d,
+    13px 24px 25px #24372a30;
+}
+.player:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: url("./assets/shell-patina.svg") center/100% 100%;
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: normal;
+}
+.player:after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 10px;
+  box-shadow:
+    inset 2px 0 3px #d9cdac2e,
+    inset 0 -4px 3px #c7b49035,
+    inset 0 0 16px #0a202d42;
+  pointer-events: none;
+  z-index: 4;
+}
+.neo-logo {
+  color: #d6d2b4;
+  text-shadow: 1px 1px 0 #071e2645;
+  opacity: 0.9;
+}
+.neo-logo span,
+.model-number {
+  color: #c6c6a8;
+}
+.model-number {
+  opacity: 0.86;
+}
+.model-number span {
+  color: #aebaa3;
+}
+.case-screw {
+  background: radial-gradient(
+    circle at 36% 36%,
+    #9f9f7a 0 15%,
+    #576957 36%,
+    #64533d 59%,
+    #243c37 78%
+  );
+  box-shadow:
+    0 0 0 1px #102b32,
+    0 0 3px 2px #a2693229;
+  transform: rotate(19deg);
+}
+.device-top {
+  background:
+    repeating-linear-gradient(
+      92deg,
+      transparent 0 24px,
+      #23382c14 25px 26px,
+      transparent 27px 43px
+    ),
+    linear-gradient(#68746b, #9d9e85 55%, #737e6c);
+}
+.door {
+  background:
+    radial-gradient(ellipse at 20% 90%, #8a84591f, transparent 55%),
+    linear-gradient(130deg, #29464a, #172e34);
+  border-color: #233b3d;
+  box-shadow:
+    0 1px 0 #929d7f,
+    inset 0 1px 2px #c3c4a43d,
+    2px 3px 5px #081c2860;
+}
+.deck-window:after {
+  background:
+    linear-gradient(
+      114deg,
+      #d7d7a91c 0 25%,
+      transparent 25.2% 63%,
+      #e8deb40e 63.2%
+    ),
+    url("./assets/tape-scuffs.svg") center/100% 100%;
+  opacity: 0.9;
+  box-shadow: inset 0 0 16px #1c1b13b0;
+}
+.cassette {
+  background:
+    radial-gradient(ellipse at 15% 10%, #a6a68b80, transparent 45%),
+    linear-gradient(120deg, #aaa98c, #c5c0a0 45%, #90987d);
+  border-color: #7e876d;
+  box-shadow:
+    inset 0 0 0 3px #7f8b70,
+    inset 0 0 0 4px #b4b393,
+    1px 3px 5px #0007;
+}
+.cassette:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: url("./assets/tape-scuffs.svg") center/100% 100%;
+  opacity: 0.95;
+  box-shadow: inset 0 0 8px #4b492e40;
+}
+.tape-label {
+  background:
+    linear-gradient(
+      115deg,
+      #8b6d2326,
+      transparent 35%,
+      #f5dfac1a 62%,
+      #4d382a1c
+    ),
+    linear-gradient(var(--tape-color) 0 47%, #d2c8a6 47%);
+  box-shadow: inset 0 0 4px #604a2729;
+}
+.tape-title {
+  color: #e7dbb4;
+  text-shadow: 0.5px 0.5px 0 #403a2330;
+  opacity: 0.94;
+}
+.label-top {
+  color: #e2d2ac;
+}
+.cassette-foot {
+  background: #959d7e;
+}
+.tape-screw {
+  background: #66694b;
+  box-shadow:
+    inset 0 1px 1px #2228,
+    0 0 2px #94703970;
+}
+.transport button {
+  background:
+    radial-gradient(ellipse at 46% 62%, #b4a47d45, transparent 65%),
+    repeating-linear-gradient(
+      97deg,
+      transparent 0 17px,
+      #83795518 18px 19px,
+      transparent 20px 31px
+    ),
+    linear-gradient(#d5d0af, #c2bda0 72%, #969883 74%, #a9a58e);
+  box-shadow:
+    inset 0 1px 0 #e9dec68f,
+    inset 0 0 5px #5a5b4235,
+    1px 3px 1px #0006;
+}
+.transport button.play-key {
+  background:
+    radial-gradient(ellipse at 40% 60%, #8e53323d, transparent 65%),
+    linear-gradient(#c88b57, #b86c42 72%, #87502f 74%, #ae7448);
+}
+.transport button span {
+  opacity: 0.86;
+  text-shadow: 0 1px 0 #eee0b333;
+}
+.sleeve {
+  background: linear-gradient(110deg, #d0c8a780, #dfd8bb90), #d8d5bf;
+  box-shadow:
+    2px 4px 0 #bfc3b14d,
+    inset 0 0 9px #84764b20;
+}
+.player .device-footer:after {
+  content: "85 / KEEP";
+  position: absolute;
+  right: 29px;
+  top: 95px;
+  transform: rotate(-6deg);
+  padding: 3px 9px 4px;
+  background: linear-gradient(105deg, #d1c8a6, #bfb48f);
+  color: #55503b;
+  box-shadow:
+    1px 1px 1px #102c2d70,
+    inset 0 0 4px #9c8a5b6b;
+  font:
+    italic 8px Georgia,
+    serif;
+  letter-spacing: 0.5px;
+  opacity: 0.86;
+  clip-path: polygon(1% 2%, 94% 0, 100% 7%, 98% 96%, 2% 100%, 0 86%);
+  pointer-events: none;
+}
+/* Keep the ink readable; wear stays fixed to the material, not to the screen. */
+.flip-stage .cassette:after {
+  opacity: 1;
+}
+/* Self-hosted edition: the everyday pocket deck, with the same tape/audio engine. */
+.mobile-dock-shade {
+  display: none;
+}
+[data-edition="selfhost"] .intro,
+[data-edition="selfhost"] .bottom-note {
+  display: none;
+}
+[data-edition="selfhost"] .site-header {
+  height: 76px;
+}
+[data-edition="selfhost"] .listening-space {
+  padding-top: 34px;
+}
+[data-edition="selfhost"] .site-footer {
+  margin-top: 35px;
+}
+[data-edition="selfhost"] .header-note {
+  font-size: 0;
+}
+[data-edition="selfhost"] .header-note:after {
+  content: "YOUR PERSONAL TAPE DECK";
+  font-size: 10px;
+  letter-spacing: 1.3px;
+}
+@media (max-width: 900px), (max-width: 1100px) and (max-height: 500px) {
+  [data-edition="selfhost"] {
+    scroll-padding-bottom: 135px;
+  }
+  [data-edition="selfhost"] body {
+    padding-bottom: calc(125px + env(safe-area-inset-bottom));
+    overscroll-behavior-y: none;
+  }
+  [data-edition="selfhost"] .site-header,
+  [data-edition="selfhost"] main,
+  [data-edition="selfhost"] .site-footer {
+    margin-left: max(15px, env(safe-area-inset-left));
+    margin-right: max(15px, env(safe-area-inset-right));
+  }
+  [data-edition="selfhost"] .site-header {
+    height: calc(64px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+  }
+  [data-edition="selfhost"] .header-note {
+    display: none;
+  }
+  [data-edition="selfhost"] .shelf-trigger:not(.primary) {
+    min-height: 44px;
+    padding: 5px 0 5px 10px;
+    font-size: 12px;
+  }
+  [data-edition="selfhost"] .listening-space {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 20px 0 0;
+  }
+  [data-edition="selfhost"] .device-area {
+    max-width: 390px;
+  }
+  [data-edition="selfhost"] .player {
+    padding: 25px 21px 16px;
+  }
+  [data-edition="selfhost"] .device-brand {
+    padding-bottom: 21px;
+  }
+  [data-edition="selfhost"] .neo-logo {
+    font-size: 35px;
+  }
+  [data-edition="selfhost"] .model-number {
+    font-size: 20px;
+  }
+  [data-edition="selfhost"] .readout {
+    padding-bottom: 5px;
+  }
+  [data-edition="selfhost"] .device-footer {
+    margin-top: 14px;
+  }
+  [data-edition="selfhost"] .player .device-footer:after {
+    top: 84px;
+    right: 24px;
+    font-size: 7px;
+  }
+  [data-edition="selfhost"] .liner {
+    width: 100%;
+    max-width: 390px;
+    padding-top: 0;
+  }
+  [data-edition="selfhost"] .liner-heading {
+    padding-bottom: 10px;
+  }
+  [data-edition="selfhost"] .track-category {
+    margin-top: 17px;
+  }
+  [data-edition="selfhost"] #current-title {
+    font-size: 26px;
+    margin-top: 9px;
+  }
+  [data-edition="selfhost"] .liner-subtitle {
+    margin-bottom: 18px;
+  }
+  [data-edition="selfhost"] .tape-note {
+    display: none;
+  }
+  [data-edition="selfhost"] .sound-controls {
+    margin-top: 24px;
+  }
+  [data-edition="selfhost"] .deck-actions {
+    gap: 24px;
+    margin-top: 0;
+  }
+  [data-edition="selfhost"] .deck-actions button {
+    min-width: 74px;
+    min-height: 58px;
+    justify-content: center;
+  }
+  [data-edition="selfhost"] .deck-actions button span {
+    font-size: 8px;
+  }
+  [data-edition="selfhost"] .transport {
+    position: fixed;
+    z-index: 21;
+    left: max(14px, env(safe-area-inset-left));
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(13px + env(safe-area-inset-bottom));
+    max-width: 430px;
+    margin-inline: auto;
+    gap: 5px;
+    padding: 5px 5px 8px;
+    min-height: 66px;
+    border: 1px solid #8b9278;
+    border-top: 0;
+    border-radius: 0 0 7px 7px;
+    box-shadow: 0 5px 12px #172b2940;
+    background: linear-gradient(#253e3e, #193338);
+  }
+  [data-edition="selfhost"] .transport button {
+    min-height: 51px;
+    font-size: 19px;
+    touch-action: manipulation;
+  }
+  [data-edition="selfhost"] .transport button.pressed {
+    min-height: 47px;
+  }
+  [data-edition="selfhost"] .transport-labels {
+    position: fixed;
+    z-index: 21;
+    left: max(14px, env(safe-area-inset-left));
+    right: max(14px, env(safe-area-inset-right));
+    max-width: 430px;
+    margin: 0 auto;
+    bottom: calc(79px + env(safe-area-inset-bottom));
+    padding: 10px 5px 4px;
+    font-size: 8px;
+    letter-spacing: 0.7px;
+    background: #294547;
+    border: 1px solid #8b9278;
+    border-bottom: 0;
+    border-radius: 7px 7px 0 0;
+    color: #c6c6a6;
+  }
+  [data-edition="selfhost"] .mobile-dock-shade {
+    display: block;
+    position: fixed;
+    z-index: 18;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(125px + env(safe-area-inset-bottom));
+    background: linear-gradient(transparent, #eeece4ed 27%, #eeece4 52%);
+    pointer-events: none;
+  }
+  [data-edition="selfhost"] #toast {
+    bottom: calc(125px + env(safe-area-inset-bottom));
+    z-index: 25;
+  }
+  [data-edition="selfhost"] .site-footer {
+    max-width: 430px;
+    margin: 30px auto 0;
+    padding: 20px 10px 12px;
+  }
+  [data-edition="selfhost"] .site-footer > span > span {
+    display: none;
+  }
+  [data-edition="selfhost"] dialog {
+    padding-bottom: 24px;
+    margin-top: max(12px, env(safe-area-inset-top));
+    margin-bottom: max(12px, env(safe-area-inset-bottom));
+    max-height: calc(
+      100dvh - max(12px, env(safe-area-inset-top)) -
+        max(12px, env(safe-area-inset-bottom))
+    );
+  }
+  [data-edition="selfhost"] input[type="range"] {
+    height: 44px;
+  }
+  [data-edition="selfhost"] .control-heading button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+@media (max-width: 1100px) and (min-width: 620px) and (max-height: 500px) {
+  [data-edition="selfhost"] .site-header {
+    height: calc(54px + env(safe-area-inset-top));
+  }
+  [data-edition="selfhost"] .listening-space {
+    grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr);
+    gap: 26px;
+    padding-top: 17px;
+  }
+  [data-edition="selfhost"] .device-area {
+    max-width: 280px;
+  }
+  [data-edition="selfhost"] .player {
+    padding: 22px 16px 13px;
+  }
+  [data-edition="selfhost"] .neo-logo {
+    font-size: 29px;
+  }
+  [data-edition="selfhost"] .model-number {
+    font-size: 17px;
+  }
+  [data-edition="selfhost"] .device-brand {
+    padding-bottom: 18px;
+  }
+  [data-edition="selfhost"] .player .device-footer:after {
+    top: 73px;
+    font-size: 6px;
+    padding: 2px 7px;
+  }
+  [data-edition="selfhost"] .readout {
+    gap: 15px;
+    padding-top: 15px;
+  }
+  [data-edition="selfhost"] .transport,
+  [data-edition="selfhost"] .transport-labels {
+    left: calc(50% + 8px);
+    right: max(14px, env(safe-area-inset-right));
+    max-width: none;
+    margin: 0;
+  }
+  [data-edition="selfhost"] .mobile-dock-shade {
+    left: 50%;
+  }
+  [data-edition="selfhost"] .liner {
+    padding-top: 2px;
+  }
+  [data-edition="selfhost"] .site-footer {
+    margin-left: 0;
+    max-width: none;
+  }
+  [data-edition="selfhost"] #toast {
+    left: 75%;
+    max-width: 45vw;
+    font-size: 10px;
+    padding: 9px 12px;
+  }
+}
+.transport-dock {
+  position: relative;
+  z-index: 21;
+}
