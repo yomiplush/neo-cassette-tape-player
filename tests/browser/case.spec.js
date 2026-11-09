@@ -73,7 +73,21 @@ test('economy display chooses half-resolution materials without shrinking the co
   await page.getByRole('button',{name:'Back to the deck'}).click();
   await expect(page.locator('html')).toHaveAttribute('data-quality','low');
   await expect(page.locator('html')).toHaveAttribute('data-render-scale','0.5');
+  await expect(page.locator('.case-glint')).toBeHidden();
   expect(await page.locator('#player').evaluate(e=>getComputedStyle(e,'::before').backgroundImage)).toContain('shell-patina-50.webp');
   const box=await page.getByRole('button',{name:'Play',exact:true}).boundingBox();
   expect(box.height).toBeGreaterThanOrEqual(44);
+});
+
+
+test('metal highlight follows case rotation at full detail',async({page})=>{
+  await page.goto('/');
+  await page.getByRole('button',{name:'Open settings'}).click();
+  await page.locator('#render-quality').selectOption('high');
+  await page.getByRole('button',{name:'Back to the deck'}).click();
+  await expect(page.locator('.case-glint')).toBeVisible();
+  const before=await page.locator('.case-object').evaluate(e=>e.style.getPropertyValue('--light-x'));
+  await page.getByRole('button',{name:'Rotate player'}).click();
+  const after=await page.locator('.case-object').evaluate(e=>e.style.getPropertyValue('--light-x'));
+  expect(after).not.toBe(before);
 });

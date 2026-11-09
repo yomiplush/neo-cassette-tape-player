@@ -1,7 +1,7 @@
 const TIERS = ['low', 'medium', 'high'];
 const BUDGETS = {
-  low: { fps: 24, renderScale: 0.5, uiInterval: 120 },
-  medium: { fps: 30, renderScale: 0.75, uiInterval: 80 },
+  low: { fps: 30, renderScale: 0.5, uiInterval: 120 },
+  medium: { fps: 60, renderScale: 0.75, uiInterval: 80 },
   high: { fps: 60, renderScale: 1, uiInterval: 50 },
 };
 
@@ -47,7 +47,7 @@ export class AdaptiveQuality {
 
     // Two seconds of consecutive pressure drops one tier. Recovery requires twelve
     // seconds of stricter headroom, so occasional stalls cannot make quality flap.
-    const slowThreshold = this.#tier === 'high' ? 24 : 38;
+    const slowThreshold = this.#tier === 'high' ? 24 : 1000 / 30;
     const fastThreshold = this.#tier === 'low' ? 25 : 19;
     this.#slowMs = frameMs > slowThreshold ? Math.min(2000, this.#slowMs + frameMs) : 0;
     this.#fastMs = frameMs < fastThreshold ? Math.min(12000, this.#fastMs + frameMs) : 0;

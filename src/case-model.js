@@ -6,6 +6,7 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
   object.dataset.rotated = 'false';
   player.before(object); object.append(player);
   player.classList.add('case-front');
+  const glint=document.createElement('div');glint.className='case-glint';glint.setAttribute('aria-hidden','true');player.append(glint);
   const back = document.createElement('div');
   back.className = 'case-back';
   back.setAttribute('aria-hidden','true');
@@ -45,6 +46,9 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
   let previousYaw=0,previousPitch=0;
   object.addEventListener('transitionend',event=>{if(event.target===object && event.propertyName==='transform')cull();});
   const paint=()=>{
+    object.style.setProperty('--light-x',`${50+42*Math.sin(yaw*Math.PI/180)}%`);
+    object.style.setProperty('--light-y',`${25+40*Math.sin(pitch*Math.PI/180)}%`);
+    object.style.setProperty('--light-angle',`${115+yaw*.35+pitch*.3}deg`);
     object.style.setProperty('--case-yaw',`${yaw}deg`);object.style.setProperty('--case-pitch',`${pitch}deg`);
     const turned=Math.abs(yaw%360)>.1 || Math.abs(pitch)>.1;
     object.dataset.rotated=String(turned);reset.disabled=!turned;

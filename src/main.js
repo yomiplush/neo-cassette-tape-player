@@ -111,38 +111,16 @@ $("#deck-model").onchange = event => {
 $("#render-quality").onchange = event => {displayQuality=event.target.value;display.setOverride(displayQuality);persist();};
 setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"), controls:$(".sound-controls"), closeButton:$("#settings-close")});
 
-// Move the same controls outside the case stacking context on pocket-sized screens.
-// No duplicate buttons/listeners: focus and transport state survive orientation changes.
-if (import.meta.env.MODE === "selfhost") {
-  const media = matchMedia(
-      "(max-width: 900px), (max-width: 1100px) and (max-height: 500px)",
-    ),
-    dock = document.createElement("div");
-  dock.className = "transport-dock";
-  document.body.append(dock);
-  const labels = $(".transport-labels"),
-    keys = $(".transport"),
-    home = $(".device-footer");
-  const place = () => {
-    if (media.matches) dock.append(labels, keys);
-    else home.before(labels, keys);
-  };
-  place();
-  media.addEventListener("change", place);
-}
-
-
 // Reflow the case to the available space without scaling its touch targets.
-if (import.meta.env.MODE !== "selfhost") {
+{
   const deck = $(".device-area"), slot = document.createElement("div");
   slot.className = "device-slot";
   deck.before(slot); slot.append(deck);
   const fit = () => {
     const landscape = innerHeight <= 500 && innerWidth >= 600;
-    const portrait = innerWidth <= 1024 && innerHeight > innerWidth;
-    const width = Math.min(landscape || portrait ? 680 : 440, slot.clientWidth - 12);
+    const width = Math.min(680, slot.clientWidth - 12);
     deck.style.width = `${width}px`;
-    deck.style.height = `${Math.min(portrait ? width * 1.7 + 24 : 760, slot.clientHeight - 12)}px`;
+    deck.style.height = `${Math.min(landscape ? 300 : width / 1.62 + 300, slot.clientHeight - 12)}px`;
     deck.style.transform = "translate(-50%, -50%)";
   };
   const observer = new ResizeObserver(fit);

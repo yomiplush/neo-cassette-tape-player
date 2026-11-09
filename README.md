@@ -48,7 +48,7 @@ Both editions share the same player, audio engine and storage model.
 | Demo / Pages | `npm run build` or `npm run build:demo` | `dist/` | Single-viewport player, fitted deck and compact controls |
 | Self-hosted | `npm run build:selfhost` | `dist-selfhost/` | Player-focused, fixed mobile transport keys, landscape columns |
 
-The demo fits the deck and essential controls into one viewport, with internally scrolling collection/help dialogs. The self-hosted layout supports narrow phones, safe areas, scrolling controls, orientation changes and dialogs that fit the viewport. Both editions include the weathered visuals, mechanical sounds and cassette animations.
+The demo fits the deck and essential controls into one viewport, with internally scrolling collection/help dialogs. The self-hosted edition shares the same single-viewport layout, including narrow phones, safe areas, orientation changes and dialogs that fit the viewport. Desktop settings use the available width without an internal sidebar scrollbar. Both editions include the weathered visuals, mechanical sounds and cassette animations.
 
 ## Cloudflare Pages
 
@@ -225,14 +225,17 @@ The case now has a thicker six-face shell and a stationary **TURN / FRONT** tool
 
 | Tier | Drag pose update budget | Material texture dimensions | Active UI interval |
 | --- | --- | --- | --- |
-| Economy | Up to 24 fps | 50% | 120 ms |
-| Balanced | Up to 30 fps | 75% | 80 ms |
+| Economy | Up to 30 fps | 50% | 120 ms |
+| Balanced | Up to 60 fps | 75% | 80 ms |
 | Full | Up to 60 fps | Original SVG detail | 50 ms |
 
 These are update budgets rather than guaranteed display frame rates. CSS compositor transitions are left to the browser. Hidden/back-facing surfaces are culled; CSS backface culling handles the interpolated pose while turning. The visible-frame monitor sleeps when idle or hidden. Transport timing continues to use the AudioContext clock and is independent of visual updates.
 
-This is a DOM/CSS 3D renderer, so **AMD FSR is not used**. Only the original weathering/material artwork is rasterized at lower tiers; text, buttons and model geometry retain native resolution. Lower tiers simplify selected shadows and texture layers. Manual Economy/Balanced/Full overrides persist. Automatic hardware detection is a hint and cannot identify every low-end device, so the manual override remains available.
+This is a DOM/CSS 3D renderer, so **AMD FSR is not used**. Only the original weathering/material artwork is rasterized at lower tiers; text, buttons and model geometry retain native resolution. A fixed studio-light highlight moves over the brushed-metal case as it rotates. Balanced uses a simpler highlight; Economy removes it and reduces shadows and texture layers. Sustained intervals below 30 fps trigger a reduction after two seconds; sustained headroom restores detail one tier at a time after twelve seconds. Manual Economy/Balanced/Full overrides persist. Automatic hardware detection is a hint and cannot identify every low-end device, so the manual override remains available.
 
 Regenerate the lightweight material assets from the original SVGs with `node scripts/prepare-materials.mjs` against the development server. The outputs are checked in; normal builds do not need a browser rasterization step. Reference and design notes: [case and reverse notes](docs/research/case-quality-auto-reverse.md).
 
 <img src="docs/screenshots/case-depth.png" alt="Thicker six-face case with a clean stationary toolbar" width="260"> <img src="docs/screenshots/model-nr88.png" alt="Original NR-88 auto-reverse model" width="260">
+
+
+The cassette window and shell share a 1.62:1 aspect ratio, with a close-fitting pocket across viewport sizes. Manual FLIP and EJECT first lift the tape behind the glass, then bring it forward only after its lower edge clears the window. FLIP turns the tape in front of the deck, moves it back above the window, and lowers it behind the glass. Reduced motion changes the side immediately; resizing or cancelling the operation cleans up the temporary model. Auto-reverse changes direction internally without extracting the tape.

@@ -1,70 +1,67 @@
-// A temporary two-sided tape lifts out of the door; the transport changes at edge-on.
-export async function flipCassette({
-  element,
-  nextSide,
-  commit,
-  signal,
-  reducedMotion,
-}) {
-  if (signal.aborted) return;
-  if (reducedMotion) {
-    commit();
-    return;
-  }
-  const {stage,object} = makeTapeBody(element,nextSide);
-  document.body.append(stage); element.style.visibility="hidden";
-  const duration = 1250;
-  const animation = object.animate(
-    [
-      {
-        transform:
-          "perspective(900px) translate3d(0,0,0) rotateX(0deg) rotateY(0deg) rotateZ(0deg)",
-        offset: 0,
-      },
-      {
-        transform:
-          "perspective(900px) translate3d(-6px,-58px,70px) rotateX(-22deg) rotateY(35deg) rotateZ(-6deg)",
-        offset: 0.25,
-      },
-      {
-        transform:
-          "perspective(900px) translate3d(0,-72px,90px) rotateX(-18deg) rotateY(96deg) rotateZ(-3deg)",
-        offset: 0.5,
-      },
-      {
-        transform:
-          "perspective(900px) translate3d(5px,-40px,50px) rotateX(-7deg) rotateY(164deg) rotateZ(3deg)",
-        offset: 0.76,
-      },
-      {
-        transform:
-          "perspective(900px) translate3d(0,0,0) rotateX(0deg) rotateY(180deg) rotateZ(0deg)",
-        offset: 1,
-      },
-    ],
-    { duration, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" },
-  );
-  let turned = false;
-  const turn = () => {
-    if (!turned && !signal.aborted) {
-      turned = true;
-      commit();
+// Keep the tape in the pocket plane while lifting; only cross to the front above the glass.
+export async function flipCassette(options) {
+  return serviceTape({...options,eject:false});
+}
+export async function ejectCassette(options) {
+  return serviceTape({...options,eject:true});
+}
+async function serviceTape({element,nextSide,commit,signal,reducedMotion,eject}) {
+  if(signal.aborted)return;
+  if(reducedMotion){commit();return;}
+  const pocket=element.closest('.deck-window');
+  const {stage,object}=makeTapeBody(element,nextSide || element.querySelector('.tape-side').textContent);
+  const wrapper=element.parentElement;
+  const origin={left:wrapper.offsetLeft+element.offsetLeft,top:wrapper.offsetTop+element.offsetTop};
+  const lift=origin.top+element.offsetHeight+16;
+  const halfDepth=parseFloat(stage.style.getPropertyValue('--half-depth'));
+  const pose=(y=0,z=0,turn=0)=>`translate3d(0,${y}px,${z-halfDepth}px) rotateY(${turn}deg)`;
+  let animation,faceFrame=null;
+  const front=object.querySelector(".flip-front"),back=object.querySelector(".flip-back");
+  const showBack=value=>{front.style.visibility=value?"hidden":"visible";back.style.visibility=value?"visible":"hidden";};
+  showBack(false);
+  const cancel=()=>animation?.cancel();
+  signal.addEventListener('abort',cancel,{once:true});
+  const animate=async(frames,duration,turning=false)=>{
+    if(signal.aborted)throw new DOMException('Aborted','AbortError');
+    animation=object.animate(frames,{duration,easing:'ease-in-out',fill:'forwards'});
+    if(turning){
+      // Explicit face culling also works through flattened DOM ancestor contexts.
+      const cull=()=>{showBack(animation.effect.getComputedTiming().progress>=.465);faceFrame=requestAnimationFrame(cull);};
+      faceFrame=requestAnimationFrame(cull);
     }
+    try {await animation.finished;}
+    finally {if(faceFrame!==null)cancelAnimationFrame(faceFrame);faceFrame=null;}
+
   };
-  const timer = setTimeout(turn, duration / 2);
-  const cancel = () => animation.cancel();
-  signal.addEventListener("abort", cancel, { once: true });
+  const mountPocket=(turn=0)=>{
+    pocket.append(stage);
+    Object.assign(stage.style,{left:`${origin.left}px`,top:`${origin.top}px`,width:`${element.offsetWidth}px`,height:`${element.offsetHeight}px`});
+    object.style.transform=pose(-lift,0,turn);
+  };
+  pocket.classList.add('tape-servicing');
+  mountPocket();object.style.transform=pose();
+  stage.dataset.phase='lifting';element.style.visibility='hidden';
   try {
-    await animation.finished;
-    turn();
-  } catch (error) {
-    if (!signal.aborted) throw error;
-  } finally {
-    clearTimeout(timer);
-    signal.removeEventListener("abort", cancel);
-    animation.cancel();
-    stage.remove();
-    element.style.visibility = "";
+    // No forward movement or rotation until the entire lower edge clears the glass.
+    await animate([{transform:pose()},{transform:pose(-lift)}],520);
+    const bounds=object.getBoundingClientRect();
+    // Stay in the door's coordinate system: changing parents would discard its tilt.
+    object.style.transform=pose(-lift);animation.cancel();
+    stage.classList.add('tape-in-front');
+    stage.dataset.phase=eject?'ejecting':'turning';
+    const frontY=Math.max(60-bounds.top,0);
+    await animate([{transform:pose(-lift)},{transform:pose(-lift,70),offset:.18},{transform:pose(-lift+frontY,70,eject?-20:180),opacity:eject?0:1,offset:.75},{transform:pose(-lift,70,eject?-20:180),opacity:eject?0:1,offset:.9},{transform:pose(-lift,0,eject?-20:180),opacity:eject?0:1}],eject?600:1000,!eject);
+    if(signal.aborted)return;
+    if(eject){commit();return;}
+    showBack(true);commit();animation.cancel();
+    // Move back behind the glass while still above it, then lower into the pocket.
+    stage.classList.remove('tape-in-front');
+    object.style.transform=pose(-lift,0,180);stage.dataset.phase='seating';
+    await animate([{transform:pose(-lift,0,180)},{transform:pose(0,0,180)}],520);
+  } catch(error) {if(!signal.aborted)throw error;}
+  finally {
+    signal.removeEventListener('abort',cancel);animation?.cancel();stage.remove();
+    pocket.classList.remove('tape-servicing');element.style.visibility='';
   }
 }
 
@@ -82,17 +79,4 @@ function makeTapeBody(element,nextSide) {
   }
   for(const side of ["top","bottom","left","right"]){const edge=document.createElement("div");edge.className=`flip-edge flip-edge-${side}`;object.append(edge);}
   stage.append(object);return{stage,object};
-}
-export async function ejectCassette({element,commit,signal,reducedMotion}) {
-  if(signal.aborted)return;if(reducedMotion){commit();return;}
-  const{stage,object}=makeTapeBody(element,element.querySelector(".tape-side").textContent);
-  document.body.append(stage);element.style.visibility="hidden";
-  const animation=object.animate([
-    {transform:"perspective(900px) translate3d(0,0,0) rotateX(0deg) rotateY(0deg)",opacity:1},
-    {transform:"perspective(900px) translate3d(0,-60px,80px) rotateX(-16deg) rotateY(-24deg)",opacity:1,offset:.6},
-    {transform:"perspective(900px) translate3d(75px,-110px,60px) rotateX(-10deg) rotateY(-38deg)",opacity:0}
-  ],{duration:650,easing:"cubic-bezier(.3,0,.2,1)",fill:"forwards"});
-  const cancel=()=>animation.cancel();signal.addEventListener("abort",cancel,{once:true});
-  try{await animation.finished;if(!signal.aborted)commit();}catch(e){if(!signal.aborted)throw e;}
-  finally{signal.removeEventListener("abort",cancel);animation.cancel();stage.remove();element.style.visibility="";}
 }

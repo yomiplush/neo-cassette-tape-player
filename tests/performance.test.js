@@ -8,8 +8,8 @@ function observe(governor, count, ms) {
 }
 
 test('uses conservative device hints and complete rendering budgets', () => {
-  assert.deepEqual(new AdaptiveQuality().state, { tier: 'medium', fps: 30, renderScale: 0.75, uiInterval: 80 });
-  assert.deepEqual(new AdaptiveQuality({ cores: 2, memory: 8 }).state, { tier: 'low', fps: 24, renderScale: 0.5, uiInterval: 120 });
+  assert.deepEqual(new AdaptiveQuality().state, { tier: 'medium', fps: 60, renderScale: 0.75, uiInterval: 80 });
+  assert.deepEqual(new AdaptiveQuality({ cores: 2, memory: 8 }).state, { tier: 'low', fps: 30, renderScale: 0.5, uiInterval: 120 });
   assert.equal(new AdaptiveQuality({ cores: 12, memory: 2 }).state.tier, 'low');
   assert.equal(new AdaptiveQuality({ cores: 12, memory: 16, saveData: true }).state.tier, 'low');
   assert.equal(new AdaptiveQuality({ cores: 12 }).state.tier, 'medium');
@@ -59,11 +59,19 @@ test('explicit overrides hold their budgets and auto resumes the learned tier', 
   assert.equal(quality.setOverride('high').tier, 'high');
   observe(quality, 1000, 100);
   assert.equal(quality.state.tier, 'high');
-  assert.equal(quality.setOverride('low').fps, 24);
+  assert.equal(quality.setOverride('low').fps, 30);
   assert.equal(quality.setOverride('medium').renderScale, 0.75);
   assert.equal(quality.setOverride('auto').tier, 'medium');
   assert.throws(() => quality.setOverride('invalid'), RangeError);
   const state = quality.state;
   state.tier = 'low';
   assert.equal(quality.state.tier, 'medium');
+});
+
+
+test('sustained sub-30 fps pressure reduces materials even at 29 fps', () => {
+  const quality = new AdaptiveQuality();
+  observe(quality, 65, 1000 / 29);
+  assert.equal(quality.state.tier, 'low');
+  assert.equal(quality.state.fps, 30);
 });
