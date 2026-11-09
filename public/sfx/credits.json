@@ -1,0 +1,9 @@
+{
+ "license":"CC0-1.0",
+ "sources":[
+  {"author":"stecman","title":"Automatic tapedeck rewind, fastforward, play","url":"https://freesound.org/people/stecman/sounds/376058/","download":"https://cdn.freesound.org/previews/376/376058_1595545-hq.mp3","usedFor":["wind-forward.wav","wind-reverse.wav"]},
+  {"author":"Joseph SARDIN / BigSoundBank","title":"Cassette Player: Rewind and Stop","url":"https://bigsoundbank.com/cassette-player-rewind-and-stop-s0566.html","download":"https://bigsoundbank.com/UPLOAD/mp3/0566.mp3","usedFor":["press.wav","stop.wav"]},
+  {"author":"Spring Spring","title":"Tape Recorder Opening and Closing Sound Effects","url":"https://opengameart.org/content/tape-recorder-opening-and-closing-sound-effects","download":"https://opengameart.org/sites/default/files/tape_recorder_opening.wav","usedFor":["door-open.wav","door-close.wav"]}
+ ],
+ "edits":"Mono 22050 Hz, 65 Hz highpass/9500 Hz lowpass, separate transient/loop normalization, 120 ms equal-power loop seam, 4 ms one-shot fades. Direction assignment is an interface design choice, not a verified classification of the recording's individual transports. No YouTube audio is redistributed."
+}

@@ -176,3 +176,11 @@ GitHub Actions 用の設定例は `docs/ci-check.example.yml` に同梱してい
 - `src/style.css` — 独自デザイン、スマホ表示、動きの軽減
 - `compose.yml` / `deploy/nginx.conf` — Self-hosted版の静的配信
 - `public/audio/` — 同梱デモ、ハッシュと時間のマニフェスト
+
+## 共有カードと機械音
+
+DEMO の静的HTMLには OGP と Twitter large-image card を設定しています。共有画像は `public/social/neo-cassette.png`（1200×630）、実際のUIから `scripts/social-preview.mjs` で生成しています。X/Discord 側のキャッシュ更新時期は各サービスに依存します。Self-hosted 版で共有カードを有効にする場合は `VITE_SITE_URL=https://your.example npm run build:selfhost` のように公開URLを指定してください。未指定ならDEMOへのcanonicalは出しません。
+
+巻き取り・停止・押下・蓋の機械音には CC0 の実録音を編集して使用しています。作者・元URL・編集内容は `public/sfx/credits.json`、許諾は `public/licenses/SFX-CC0.txt`、計測と設計の根拠は `docs/research/cassette-sound.md` に保存しています。YouTube音声は配布していません。プレイヤー本体はMIT、同梱楽曲・機械音はCC0です。
+
+右上の画像生成アイコンは、ホーム→ソース→支援の順です。原本と生成プロンプトは `vendor/generated-icons/` に保存しています。

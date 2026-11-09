@@ -180,3 +180,31 @@ test("rotating during FLIP restores the real tape and releases the operation loc
   );
   await expect(page.locator("#player")).not.toHaveClass(/flipping/);
 });
+test('generated navigation icons link to homepage, repository and sponsors in order', async ({page}) => {
+ await page.goto('/');
+ const links=page.locator('.creator-links a'); await expect(links).toHaveCount(3);
+ expect(await links.evaluateAll(nodes=>nodes.map(a=>a.href))).toEqual(['https://www.yomiplush.dev/','https://github.com/yomiplush/neo-cassette-tape-player','https://github.com/sponsors/yomiplush']);
+ for(const link of await links.all()) { await expect(link.locator('img')).toBeVisible(); expect(await link.locator('img').evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true); }
+});
+test('all service controls are on the case and closed-deck FLIP and EJECT sequence safely', async ({page})=>{
+ await page.goto('/');
+ for(const name of ['蓋を開閉','A/B面を裏返す','テープを取り出す']) expect(await page.getByRole('button',{name,exact:true}).evaluate(b=>!!b.closest('#player'))).toBe(true);
+ await page.getByRole('button',{name:'テープ棚を開く'}).click();await page.locator('.load-tape').first().click();await expect(page.locator('#status')).toHaveText('READY');
+ await page.getByRole('button',{name:'再生',exact:true}).click();await expect(page.locator('#status')).toContainText('PLAY');
+ await page.getByRole('button',{name:'A/B面を裏返す'}).click();await expect(page.locator('.flip-stage')).toBeVisible();
+ await expect(page.locator('.flip-edge')).toHaveCount(4);
+ await expect(page.locator('#side-label')).toHaveText('B');await expect(page.locator('#status')).toHaveText('READY');await expect(page.locator('#player')).not.toHaveClass(/door-open/);
+ await page.getByRole('button',{name:'テープを取り出す'}).click();await expect(page.locator('#status')).toHaveText('NO TAPE');await expect(page.locator('#player')).toHaveClass(/door-open/);
+});
+
+test('social preview is available in initial HTML without executing JavaScript', async ({ request }) => {
+  const response = await request.get('/');
+  const html = await response.text();
+  expect(html).toContain('property="og:url" content="https://neo-cassette-tape-player-demo.yomiplush.dev/"');
+  expect(html).toContain('name="twitter:card" content="summary_large_image"');
+  const cover = await request.get('/social/neo-cassette.png');
+  expect(cover.ok()).toBeTruthy();
+  const png = await cover.body();
+  expect(png.readUInt32BE(16)).toBe(1200);
+  expect(png.readUInt32BE(20)).toBe(630);
+});

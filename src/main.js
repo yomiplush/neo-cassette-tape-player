@@ -1,7 +1,10 @@
 import "./style.css";
 import { TapeTransport } from "./transport.js";
 import { CassetteAudio } from "./audio.js";
-import { flipCassette } from "./flip.js";
+import { flipCassette, ejectCassette } from "./flip.js";
+import homeIcon from "./assets/icons/home.webp";
+import repositoryIcon from "./assets/icons/repository.webp";
+import sponsorIcon from "./assets/icons/sponsor.webp";
 import {
   demos,
   readSettings,
@@ -30,6 +33,7 @@ let tapes = [...demos],
   lastMode = "",
   toastTimer,
   flipping = false,
+  servicePhase = "",
   flipController = null,
   generation = 0,
   playController = null;
@@ -47,7 +51,7 @@ const cassette = (mini = false) =>
   `<div class="cassette ${mini ? "mini" : ""}"><i class="tape-screw tl"></i><i class="tape-screw tr"></i><i class="tape-screw bl"></i><i class="tape-screw br"></i><div class="tape-label"><div class="label-top"><span class="tape-side">A</span><span>NEO SOUND ARCHIVE</span><span>STEREO</span></div><strong class="tape-title">YOUR NEXT MEMORY</strong><div class="label-rule"></div><div class="tape-window"><div class="spool left-spool"><div class="reel"></div></div><div class="tape-bridge"></div><div class="spool right-spool"><div class="reel"></div></div></div><div class="label-bottom"><span>LOW NOISE / HIGH FEELING</span><b>TYPE I</b></div></div><div class="cassette-foot"><i></i><span>● &nbsp; ▪ &nbsp; ●</span><i></i></div></div>`;
 
 $("#app").innerHTML = `
-<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE ホーム">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><button class="shelf-trigger" aria-label="テープ棚を開く"><span class="shelf-icon">▤</span> テープ棚 <span class="count">03</span></button></header>
+<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE ホーム">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><nav class="creator-links" aria-label="作者のリンク"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush 公式サイト" title="YomiPlush 公式サイト"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub リポジトリ" title="GitHub リポジトリ"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="GitHub Sponsors で応援する" title="GitHub Sponsors で応援する"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
 <main>
  <section class="intro"><div><div class="eyebrow"><span class="tiny-dot"></span> PERSONAL STEREO / EST. 1985</div><h1>少し不完全な音が、<br><em>ちょうどいい。</em></h1></div><p>テープを選ぶ。ボタンを押す。<br>ノイズも、揺らぎも、あの頃のまま。<br><span>A little hiss. A lot of feeling.</span></p></section>
  <section class="listening-space" aria-label="カセットプレイヤー">
@@ -55,13 +59,15 @@ $("#app").innerHTML = `
  <div class="player" id="player">
   <i class="case-screw tl"></i><i class="case-screw tr"></i><i class="case-screw bl"></i><i class="case-screw br"></i>
   <div class="device-brand"><div class="neo-logo">NEO<span>PORTABLE CASSETTE PLAYER</span></div><div class="model-number">NC-85<span>STEREO</span></div></div>
-  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div></div><div class="door-bottom"><span>FULL AUTO STOP</span><span>↗ OPEN</span></div></div><div class="door-edge"></div></div>
+  <div class="case-topline"><button class="shelf-trigger case-shelf" aria-label="テープ棚を開く">TAPE BOX <span class="count">03</span></button><span id="door-state">DOOR LATCHED</span></div>
+  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="カセット窓の開閉" title="窓を押して開閉"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><span>↗ OPEN</span></div></div><div class="door-edge"></div></div>
   <div class="readout"><div class="counter-wrap"><span class="micro-label">TAPE COUNTER</span><div class="counter-line"><output id="counter">000</output><button id="reset-counter" aria-label="カウンターをリセット">RESET</button></div></div><div class="signal-wrap"><div class="signal-label"><span class="led" id="led"></span><span id="status" role="status">NO TAPE</span></div><div class="vu-meter" aria-label="音量レベル">${"<i></i>".repeat(12)}</div><div class="vu-scale"><span>−20</span><span>−10</span><span>0</span><span>+3</span></div></div></div>
+ <div class="deck-actions case-controls"><button data-action="door" aria-label="蓋を開閉">⏏ <span>OPEN / CLOSE</span></button><button data-action="flip" aria-label="A/B面を裏返す">↻ <span>FLIP A / B</span></button><button data-action="eject" aria-label="テープを取り出す">↗ <span>EJECT TAPE</span></button></div>
   <div class="transport-labels"><span>REW</span><span>F.FWD</span><span>STOP</span><span>PLAY</span><span>PAUSE</span></div>
   <div class="transport"><button data-action="rewind" aria-label="巻き戻し"><span>◀◀</span></button><button data-action="forward" aria-label="早送り"><span>▶▶</span></button><button data-action="stop" aria-label="停止"><span>■</span></button><button data-action="play" class="play-key" aria-label="再生"><span>▶</span></button><button data-action="pause" aria-label="一時停止"><span>Ⅱ</span></button></div>
   <div class="device-footer"><span class="stereo-bars">▥</span><span>FEEL THE TAPE.</span><span class="serial">N° 008519</span></div>
  </div><div class="device-bottom"><span>HIGH FIDELITY? &nbsp; NOT QUITE.</span><div class="bottom-ridges"></div></div><div class="device-shadow"></div>
- <div class="deck-actions"><button data-action="door" aria-label="蓋を開閉">⏏ <span>OPEN / CLOSE</span></button><button data-action="flip" aria-label="A/B面を裏返す">↻ <span>FLIP A / B</span></button><button data-action="eject" aria-label="テープを取り出す">↗ <span>EJECT TAPE</span></button></div>
+
  </div>
  <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">▱</span><h2>どのテープにする？</h2><p>棚から一本、選んでみてください。<br>今日の気分に合う音があるはず。</p><button class="shelf-trigger primary">テープを選ぶ <span>↗</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="side-row"><span>SIDE <b id="side-label">A</b></span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><p class="tape-note">曲を飛ばす代わりに、巻き戻す。<br>反対の面は、蓋を開けて裏返して。</p></div>
  <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="プレイヤーの使い方">ⓘ</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="マスター音量"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>テープのくたびれ具合</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="テープの劣化量"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div></div>
@@ -70,8 +76,8 @@ $("#app").innerHTML = `
 </main><footer class="site-footer"><span>NEO CASSETTE <span>— A SMALL TRIP BACK.</span></span><button id="credits-open">CREDITS & LICENSES ↗</button></footer>
 <dialog id="library-dialog" aria-labelledby="library-heading"><div class="dialog-header"><div><div class="eyebrow">THE COLLECTION</div><h2 id="library-heading">あなたのテープ棚<span id="tape-total">03 TAPES</span></h2></div><button class="close-dialog" aria-label="テープ棚を閉じる">×</button></div><p class="dialog-intro">一本選んで、今日のサウンドトラックに。</p><div id="tape-grid" class="tape-grid"></div><button id="import-open" class="import-button"><b>＋</b><span>自分だけのテープを作る<small>音源ファイルから A / B 面を作成</small></span><span>↗</span></button><p class="library-note">DEMO COLLECTION · 6 ORIGINAL TRACKS BY DURU-AI · CC0<br>取り込んだ音源は、このブラウザの中だけに保存されます。</p></dialog>
 <dialog id="import-dialog" aria-labelledby="import-heading"><form id="import-form"><div class="dialog-header"><div><div class="eyebrow">MAKE A MIXTAPE</div><h2 id="import-heading">音楽に、居場所を。</h2></div><button type="button" class="close-dialog" aria-label="取り込み画面を閉じる">×</button></div><p class="dialog-intro">A面とB面に一曲ずつ。あなたの音源を一本のテープに。</p><label class="form-label">テープの名前<input name="title" maxlength="40" placeholder="例：帰り道のミックス" required></label><label class="form-label file-label">SIDE A <span>必須</span><input name="sideA" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" required></label><label class="form-label file-label">SIDE B <span>省略するとA面を両面に収録</span><input name="sideB" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"></label><p class="form-hint">各面 30 MB・10分まで。MP3 / WAV / M4A など、ブラウザが再生できる形式。サーバーへの送信はありません。</p><button class="primary import-submit" type="submit">テープを作る <span>↗</span></button><p id="import-status" role="status"></p></form></dialog>
-<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">少し、手間を楽しもう。</h2></div><button class="close-dialog" aria-label="説明を閉じる">×</button></div><div class="manual"><p><b>01 / テープを選ぶ</b>棚から選ぶと、蓋が開いてテープが入ります。交換は停止してから。</p><p><b>02 / ボタンを押す</b>▶ で再生。Ⅱ で一時停止。◀◀ / ▶▶ は12倍速で巻き取り、■ で停止。終端ではカチッと自動停止します。</p><p><b>03 / 裏返す</b>■ → OPEN → FLIP → CLOSE。A/B面ごとの位置を記憶します。RESET はカウンター表示だけをゼロにします。</p><p><b>04 / くたびれ具合を選ぶ</b>ヒス、音の揺れ、高域の丸み、歪み、軽い音抜けを再現。劣化量が最小でもテープらしさは残ります。</p><p>キーボード：Space 再生 / 一時停止、← / → 巻き取り、S 停止、E 蓋、F 裏返す。スマホでは最初の操作で音声を有効にします。画面を離れると停止し、戻ったら手動で再生できます。</p><p class="form-hint">架空の機種を表現したシミュレーションです。録音機能や実在機の全機能を再現するものではありません。</p></div></dialog>
-<dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="クレジットを閉じる">×</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 は独自のデザインです。参照写真、実在メーカーのロゴ、製品画像は同梱していません。</p><p><b>MUSIC / CC0 1.0</b>6曲のデモ音源は DURU-AI / uncle-sheepsky のオリジナル楽曲。公開リポジトリから取得し、128 kbps MP3 に変換しています。曲名・作者・元の許諾を保持しています。</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">音源のソースリポジトリ ↗</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">音源の CC0 ライセンス全文 ↗</a></p><p>テープのタイトルは、このプレイヤー独自の編集タイトルです。収録曲の正式タイトルは再生画面と棚に表示しています。取り込み音源の権利は元の権利者に帰属します。</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub ↗</a></p></div></dialog>
+<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">少し、手間を楽しもう。</h2></div><button class="close-dialog" aria-label="説明を閉じる">×</button></div><div class="manual"><p><b>01 / テープを選ぶ</b>棚から選ぶと、蓋が開いてテープが入ります。走行中の交換操作も、先に自動で停止してから行います。</p><p><b>02 / ボタンを押す</b>▶ で再生。Ⅱ で一時停止。◀◀ / ▶▶ は12倍速で巻き取り、■ で停止。終端ではカチッと自動停止します。</p><p><b>03 / 裏返す</b>本体の FLIP 一回で停止→開く→立体反転→閉じる。開いた状態からの FLIP は開いたまま戻します。A/B面ごとの位置を記憶します。RESET はカウンター表示だけをゼロにします。</p><p><b>04 / くたびれ具合を選ぶ</b>ヒス、音の揺れ、高域の丸み、歪み、軽い音抜けを再現。劣化量が最小でもテープらしさは残ります。</p><p>キーボード：Space 再生 / 一時停止、← / → 巻き取り、S 停止、E 蓋、F 裏返す。スマホでは最初の操作で音声を有効にします。画面を離れると停止し、戻ったら手動で再生できます。</p><p class="form-hint">架空の機種を表現したシミュレーションです。録音機能や実在機の全機能を再現するものではありません。</p></div></dialog>
+<dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="クレジットを閉じる">×</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 は独自のデザインです。参照写真、実在メーカーのロゴ、製品画像は同梱していません。</p><p><b>MECHANISMS / CC0 1.0</b>実録音: stecman、Joseph SARDIN / BigSoundBank、Spring Spring。切り出し・フィルター・ループ加工。<a href="${import.meta.env.BASE_URL}sfx/credits.json" target="_blank" rel="noopener noreferrer">出典と編集内容 ↗</a> · <a href="${import.meta.env.BASE_URL}licenses/SFX-CC0.txt" target="_blank" rel="noopener noreferrer">CC0全文 ↗</a></p><p><b>MUSIC / CC0 1.0</b>6曲のデモ音源は DURU-AI / uncle-sheepsky のオリジナル楽曲。公開リポジトリから取得し、128 kbps MP3 に変換しています。曲名・作者・元の許諾を保持しています。</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">音源のソースリポジトリ ↗</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">音源の CC0 ライセンス全文 ↗</a></p><p>テープのタイトルは、このプレイヤー独自の編集タイトルです。収録曲の正式タイトルは再生画面と棚に表示しています。取り込み音源の権利は元の権利者に帰属します。</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub ↗</a></p></div></dialog>
 <div class="mobile-dock-shade" aria-hidden="true"></div><div id="toast" role="status" aria-live="polite"></div>`;
 
 // Move the same controls outside the case stacking context on pocket-sized screens.
@@ -142,8 +148,7 @@ function renderShelf() {
     (b) =>
       (b.onclick = () =>
         action(async () => {
-          if (transport.mode !== "stopped")
-            return message("先に ■ STOP を押して、テープを止めてください。");
+          transport.stop(); audio.setMode("stopped");
           const tape = tapes.find((t) => t.id === b.dataset.id);
           if (transport.tape?.id === tape.id) {
             $("#library-dialog").close();
@@ -204,7 +209,9 @@ function render() {
     rewinding: "REW ◂◂",
     forwarding: "FF ▸▸",
   };
-  $("#status").textContent = flipping
+  $("#door-state").textContent = transport.open ? "DOOR OPEN" : "DOOR LATCHED";
+  $$('[data-action="door"]').forEach(b=>b.setAttribute("aria-expanded", String(transport.open)));
+  $("#status").textContent = servicePhase ? servicePhase : flipping
     ? "FLIPPING…"
     : busy
       ? "LOADING…"
@@ -212,7 +219,7 @@ function render() {
         ? "NO TAPE"
         : names[mode];
   $("#player").classList.toggle("flipping", flipping);
-  $$(".shelf-trigger").forEach((b) => (b.disabled = flipping));
+  $$(".shelf-trigger").forEach((b) => (b.disabled = !!servicePhase || flipping));
   $("#led").classList.toggle("on", mode === "playing");
   $("#counter").textContent = String(
     ((Math.floor((transport.position - counterZero) * 1.8) % 1000) + 1000) %
@@ -228,10 +235,10 @@ function render() {
   $$("[data-action]").forEach((b) => {
     const a = b.dataset.action;
     b.disabled =
-      (busy && !(a === "stop" && playController)) ||
+      (busy && !(["stop", "door", "flip", "eject"].includes(a) && playController)) ||
       (["play", "pause", "rewind", "forward"].includes(a) &&
         (!t || transport.open)) ||
-      (["flip", "eject"].includes(a) && (!t || !transport.open));
+      (["flip", "eject"].includes(a) && !t);
   });
   if (t) {
     $("#loaded-tape .cassette").style.setProperty("--tape-color", t.color);
@@ -344,67 +351,54 @@ async function control(name) {
   if (name === "rewind" || name === "forward") {
     if (transport.wind(name === "rewind" ? -1 : 1)) {
       audio.setMode(transport.mode);
-      audio.sound("squeak");
+
     }
   }
-  if (name === "door") {
-    if (transport.door()) audio.sound("door");
-    else message("先に ■ STOP を押すと、蓋が開きます。");
-  }
-  if (name === "flip") {
-    if (!transport.tape || !transport.open) return;
-    const tapeBounds = $("#loaded-tape .cassette").getBoundingClientRect();
-    const pocket =
-      import.meta.env.MODE === "selfhost" &&
-      matchMedia(
-        "(max-width: 900px), (max-width: 1100px) and (max-height: 500px)",
-      ).matches;
-    const availableHeight = pocket
-      ? $(".transport-labels").getBoundingClientRect().top - 12
-      : innerHeight - 15;
-    if (tapeBounds.top < 100 || tapeBounds.bottom > availableHeight) {
-      window.scrollBy(
-        0,
-        tapeBounds.top -
-          Math.max(100, (availableHeight - tapeBounds.height) / 2),
-      );
-    }
-    flipping = true;
-    const controller = new AbortController();
-    flipController = controller;
-    render();
-    const resized = () => controller.abort();
-    window.addEventListener("resize", resized);
-    try {
-      await flipCassette({
-        element: $("#loaded-tape .cassette"),
-        nextSide: transport.side === "A" ? "B" : "A",
-        signal: controller.signal,
-        reducedMotion: matchMedia("(prefers-reduced-motion: reduce)").matches,
-        commit: () => {
-          if (transport.flip()) {
-            counterZero = 0;
-            audio.sound("flip");
-            persist();
-            render();
-          }
-        },
+  if (["door", "flip", "eject"].includes(name)) await service(name);
+
+}
+function waitForMechanism(ms, signal) {
+  if (signal.aborted) return Promise.resolve(false);
+  return new Promise(resolve => {
+    const done = () => { clearTimeout(timer); signal.removeEventListener("abort", done); resolve(!signal.aborted); };
+    const timer = setTimeout(done, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : ms);
+    signal.addEventListener("abort", done, { once: true });
+  });
+}
+async function moveDoor(open, signal) {
+  if (transport.open === open) return !signal.aborted;
+  transport.door(); audio.sound(open ? "door-open" : "door-close"); render();
+  return waitForMechanism(360, signal);
+}
+function frameTape() {
+  const rect = $("#loaded-tape .cassette").getBoundingClientRect();
+  const pocket = import.meta.env.MODE === "selfhost" && matchMedia("(max-width: 900px), (max-width: 1100px) and (max-height: 500px)").matches;
+  const bottom = pocket ? $(".transport-labels").getBoundingClientRect().top - 12 : innerHeight - 15;
+  if (rect.top < 110 || rect.bottom > bottom) window.scrollBy(0, rect.top - Math.max(110, (bottom - rect.height)/2));
+}
+async function service(name) {
+  if (name !== "door" && !transport.tape) return;
+  transport.stop(); audio.setMode("stopped"); persist();
+  const controller = new AbortController(), signal = controller.signal, wasOpen = transport.open, width = innerWidth;
+  flipController = controller; servicePhase = name === "flip" ? "FLIPPING…" : name === "eject" ? "EJECTING…" : "DOOR…";
+  const resized = () => { if (innerWidth !== width) controller.abort(); }; window.addEventListener("resize", resized);
+  try {
+    if (name === "door") { await moveDoor(!wasOpen, signal); return; }
+    if (!await moveDoor(true, signal)) return;
+    frameTape(); if (signal.aborted) return;
+    if (name === "flip") {
+      flipping = true; render();
+      await flipCassette({element:$("#loaded-tape .cassette"), nextSide:transport.side === "A" ? "B" : "A", signal,
+        reducedMotion:matchMedia("(prefers-reduced-motion: reduce)").matches,
+        commit:()=>{ if(transport.flip()){counterZero=0;audio.sound("flip");persist();render();} }
       });
-      if (!controller.signal.aborted) audio.sound("seat");
-    } finally {
-      window.removeEventListener("resize", resized);
-      flipping = false;
-      flipController = null;
+      if (!signal.aborted) { audio.sound("seat"); if (!wasOpen) await moveDoor(false, signal); }
+    } else {
+      render(); await ejectCassette({element:$("#loaded-tape .cassette"),signal,reducedMotion:matchMedia("(prefers-reduced-motion: reduce)").matches,
+        commit:()=>{transport.eject();counterZero=0;audio.sound("seat");persist();render();} });
+      if(!signal.aborted) message("テープを取り出しました。本体の TAPE BOX から次の一本を。");
     }
-  }
-  if (name === "eject") {
-    if (transport.eject()) {
-      audio.sound("door");
-      counterZero = 0;
-      persist();
-      message("テープを取り出しました。棚から次の一本を。");
-    }
-  }
+  } finally { window.removeEventListener("resize",resized); flipping=false;servicePhase="";flipController=null; }
 }
 function cancelPlayback() {
   if (!playController) return;
@@ -417,10 +411,11 @@ function cancelPlayback() {
   render();
 }
 function dispatch(name) {
-  if (name === "stop" && playController) {
+  if (["stop","door","flip","eject"].includes(name) && playController) {
     cancelPlayback();
     audio.sound("click");
     persist();
+    if(name !== "stop") action(()=>control(name));
   } else
     action(() => {
       audio.sound("click");
@@ -577,7 +572,6 @@ function advance() {
   const ended = transport.tick(audio.delta());
   if (ended) {
     audio.setMode("stopped");
-    audio.sound("click");
     message("カチッ。テープの端まで来ました。");
     persist();
   }

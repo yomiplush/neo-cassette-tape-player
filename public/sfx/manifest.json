@@ -1,0 +1,68 @@
+[
+  {
+    "file": "wind-reverse.wav",
+    "duration": 2.1299773242630384,
+    "source": "stecman-376058.mp3",
+    "start": 2.1,
+    "end": 4.35,
+    "loop": true,
+    "sha256": "357b2bc6030cca56ecaa4e07c06b0e651e749da61f203ba464ddebb53b58ef81",
+    "source_sha256": "7cb5cc2f2de65aa9f45d0111e05e04c2ab498ef0637ae7d0e6b643cdcdb7062b",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "wind-forward.wav",
+    "duration": 15.38,
+    "source": "stecman-376058.mp3",
+    "start": 9.2,
+    "end": 24.7,
+    "loop": true,
+    "sha256": "08b68f9be6fc8b2b5e9bd990b33367b7fc727a0ed98454d56808e6b24dbff9fa",
+    "source_sha256": "7cb5cc2f2de65aa9f45d0111e05e04c2ab498ef0637ae7d0e6b643cdcdb7062b",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "press.wav",
+    "duration": 0.4200453514739229,
+    "source": "sardin-0566.mp3",
+    "start": 0.01,
+    "end": 0.43,
+    "loop": false,
+    "sha256": "1bdc459bafe3a03bdd4b61924fda5a35044aca1e0f00e209c883f7fd6e184883",
+    "source_sha256": "61ca3fa36cbe6c7812aa50f938e1f50aab2680b3b94e07cebc65e01a840c5367",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "stop.wav",
+    "duration": 0.46,
+    "source": "sardin-0566.mp3",
+    "start": 2.5,
+    "end": 2.96,
+    "loop": false,
+    "sha256": "c40fb9ee1e60b81bb1fe2b00b0fe20bac18e7d4b463792b03c6276826c764cc0",
+    "source_sha256": "61ca3fa36cbe6c7812aa50f938e1f50aab2680b3b94e07cebc65e01a840c5367",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "door-open.wav",
+    "duration": 0.9511564625850341,
+    "source": "hatch-open.wav",
+    "start": 0,
+    "end": null,
+    "loop": false,
+    "sha256": "ab4db054298e5fbcbc1648a5fbefb7246bcb538c5dd001d050932e1f4b06e698",
+    "source_sha256": "56a1b1138a8a7dbd5ea59c298a7b711e6dab817d851c06a1130d208b1d8c40f2",
+    "license": "CC0-1.0"
+  },
+  {
+    "file": "door-close.wav",
+    "duration": 1.1678004535147393,
+    "source": "hatch-close.wav",
+    "start": 0,
+    "end": null,
+    "loop": false,
+    "sha256": "d94fac20e9009baea4d37e1ae18628510bad6c8edbd3c517080b611e9aef631f",
+    "source_sha256": "325ade1092dd5f95aaa594ebd94766aa1db9703604709dfc10d93bcc9c0e6bc2",
+    "license": "CC0-1.0"
+  }
+]

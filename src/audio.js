@@ -1,3 +1,4 @@
+import { MechanismSounds } from "./mechanisms.js";
 // Original Web Audio tape model. Everything, including mechanisms, passes through master.
 export class CassetteAudio {
   constructor() {
@@ -10,6 +11,7 @@ export class CassetteAudio {
   async unlock() {
     if (!this.ctx) this.create();
     if (this.ctx.state !== "running") await this.ctx.resume();
+    this.mechanisms.preload().catch(() => {});
   }
   create() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -68,8 +70,9 @@ export class CassetteAudio {
     noise.loop = true;
     const filter = c.createBiquadFilter();
     filter.type = "highpass";
-    filter.frequency.value = 1700;
-    noise.connect(filter).connect(this.hiss).connect(this.master);
+    filter.frequency.value = 900;
+    const hissCeiling=c.createBiquadFilter();hissCeiling.type="lowpass";hissCeiling.frequency.value=10800;
+    noise.connect(filter).connect(hissCeiling).connect(this.hiss).connect(this.master);
     noise.start();
     this.motor = c.createOscillator();
     this.motor.type = "triangle";
@@ -81,19 +84,18 @@ export class CassetteAudio {
     this.createWinding();
     this.setWear(this.wear);
     this.clock = c.currentTime;
-    this.dropTimer = setInterval(() => {
-      if (this.mode !== "playing" || c.state !== "running") return;
-      const now = c.currentTime;
-      const amount = 0.04 + this.wear * 0.45;
-      this.dropout.gain.cancelScheduledValues(now);
-      this.dropout.gain.setValueAtTime(1, now);
-      this.dropout.gain.linearRampToValueAtTime(1 - amount, now + 0.035);
-      this.dropout.gain.linearRampToValueAtTime(
-        1,
-        now + 0.12 + this.wear * 0.12,
-      );
-    }, 4200);
+    const dropout = () => {
+      if (this.mode === "playing" && c.state === "running" && Math.random() < this.wear) {
+        const now = c.currentTime, amount = .01 + this.wear * .15;
+        this.dropout.gain.cancelScheduledValues(now); this.dropout.gain.setValueAtTime(1, now);
+        this.dropout.gain.linearRampToValueAtTime(1 - amount, now + .025);
+        this.dropout.gain.linearRampToValueAtTime(1, now + .09 + Math.random() * .12);
+      }
+      this.dropTimer = setTimeout(dropout, 5000 + Math.random() * 9000);
+    };
+    this.dropTimer = setTimeout(dropout, 5000 + Math.random() * 9000);
   }
+
   setVolume(value) {
     this.volume = Math.max(0, Math.min(1, value));
     if (this.ctx)
@@ -116,8 +118,8 @@ export class CassetteAudio {
       curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
     }
     this.saturator.curve = curve;
-    this.lfos[0].gain.setTargetAtTime(0.0003 + w * 0.0015, now, 0.1);
-    this.lfos[1].gain.setTargetAtTime(0.000025 + w * 0.00011, now, 0.1);
+    this.lfos[0].gain.setTargetAtTime(0.00012 + w * 0.00075, now, 0.1);
+    this.lfos[1].gain.setTargetAtTime(0.000008 + w * 0.000045, now, 0.1);
     this.ambience();
   }
   async decode(id, data) {
@@ -171,7 +173,10 @@ export class CassetteAudio {
       this.envelope.gain.setTargetAtTime(0, this.ctx.currentTime, 0.012);
   }
   setMode(mode) {
+    const previous = this.mode;
     this.mode = mode;
+    this.mechanisms?.setMode(mode);
+    if (mode === "stopped" && ["playing","forwarding","rewinding"].includes(previous)) this.sound("stop");
     if (mode !== "playing") this.stopSource();
     this.ambience();
     this.setSpoolPosition(this.spoolPosition ?? 0.5);
@@ -181,12 +186,12 @@ export class CassetteAudio {
     const running = ["playing", "forwarding", "rewinding"].includes(this.mode),
       winding = this.mode.endsWith("ing") && this.mode !== "playing";
     this.hiss.gain.setTargetAtTime(
-      running ? (winding ? 0.008 : 0.007 + this.wear * 0.022) : 0,
+      running ? (winding ? 0.0015 : 0.004 + this.wear * 0.012) : 0,
       this.ctx.currentTime,
       0.05,
     );
     this.motorGain.gain.setTargetAtTime(
-      running ? (winding ? 0.012 : 0.003) : 0,
+      running ? (winding ? 0.001 : 0.003) : 0,
       this.ctx.currentTime,
       0.05,
     );
@@ -202,68 +207,16 @@ export class CassetteAudio {
     );
   }
   createWinding() {
-    const c = this.ctx;
-    this.windEnvelope = c.createGain();
-    this.windEnvelope.gain.value = 0;
-    const wheel = c.createGain();
-    wheel.gain.value = 0.8;
-    wheel.connect(this.windEnvelope).connect(this.master);
-    this.windTones = [];
-    for (const [frequency, type, volume] of [
-      [125, "sawtooth", 0.18],
-      [465, "sine", 0.045],
-      [980, "sine", 0.022],
-    ]) {
-      const osc = c.createOscillator(),
-        gain = c.createGain(),
-        filter = c.createBiquadFilter();
-      osc.type = type;
-      osc.frequency.value = frequency;
-      gain.gain.value = volume;
-      filter.type = "lowpass";
-      filter.frequency.value = 2300;
-      osc.connect(filter).connect(gain).connect(wheel);
-      osc.start();
-      this.windTones.push({ osc, frequency });
-    }
-    const gear = c.createOscillator(),
-      pulse = c.createGain(),
-      wobble = c.createGain();
-    gear.type = "triangle";
-    gear.frequency.value = 17.5;
-    pulse.gain.value = 0.19;
-    wobble.gain.value = 24;
-    gear.connect(pulse).connect(wheel.gain);
-    gear.connect(wobble).connect(this.windTones[1].osc.frequency);
-    gear.start();
-    const friction = c.createBufferSource(),
-      band = c.createBiquadFilter(),
-      frictionGain = c.createGain();
-    friction.buffer = this.noiseBuffer;
-    friction.loop = true;
-    band.type = "bandpass";
-    band.frequency.value = 1450;
-    band.Q.value = 0.75;
-    frictionGain.gain.value = 0.07;
-    friction.connect(band).connect(frictionGain).connect(wheel);
-    friction.start();
+    this.mechanisms = new MechanismSounds(this.ctx, this.master, this.noiseBuffer);
+    this.windEnvelope = this.mechanisms.windEnvelope;
   }
   setSpoolPosition(fraction) {
     this.spoolPosition = Math.max(0, Math.min(1, fraction));
-    if (!this.ctx || !["forwarding", "rewinding"].includes(this.mode)) return;
-    const reverse = this.mode === "rewinding";
-    const ratio =
-      (0.88 + 0.28 * (reverse ? 1 - this.spoolPosition : this.spoolPosition)) *
-      (reverse ? 1.07 : 1);
-    for (const { osc, frequency } of this.windTones)
-      osc.frequency.setTargetAtTime(
-        frequency * ratio,
-        this.ctx.currentTime,
-        0.12,
-      );
+    this.mechanisms?.position(this.spoolPosition);
   }
   sound(kind = "click") {
     if (!this.ctx) return;
+    if (this.mechanisms?.play(kind)) return;
     const c = this.ctx,
       now = c.currentTime;
     // Two separate impacts: the latch catches, then its spring bounces back.

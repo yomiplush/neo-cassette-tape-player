@@ -29,3 +29,13 @@ test("six unique demo recordings match the pinned licensed asset manifest", asyn
     ),
   );
 });
+test("six CC0 mechanism assets retain their hashes and WAV headers", async () => {
+  const manifest = JSON.parse(await readFile(new URL('../public/sfx/manifest.json', import.meta.url)));
+  assert.equal(manifest.length, 6);
+  for (const clip of manifest) {
+    assert.equal(clip.license, 'CC0-1.0');
+    const data = await readFile(new URL(`../public/sfx/${clip.file}`, import.meta.url));
+    assert.equal(data.toString('ascii', 0, 4), 'RIFF');
+    assert.equal(createHash('sha256').update(data).digest('hex'), clip.sha256);
+  }
+});

@@ -3763,3 +3763,7 @@ Repository: https://github.com/websockets/ws
 > CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ```
+
+## Cassette mechanism recordings — CC0 1.0
+
+stecman (Freesound 376058), Joseph SARDIN / BigSoundBank (0566), and Spring Spring (OpenGameArt). Source links, transformations and used files: `public/sfx/credits.json`. Full CC0 text: `public/licenses/SFX-CC0.txt`. These assets retain their CC0 status separately from the application's MIT license.

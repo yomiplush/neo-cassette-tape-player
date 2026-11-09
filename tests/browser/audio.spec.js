@@ -87,3 +87,29 @@ test("fast winding makes a sustained mechanical rumble and stops cleanly", async
   expect(result.reverse).toBeGreaterThan(0.018);
   expect(result.stopped).toBeLessThan(0.0001);
 });
+
+test('recorded mechanisms decode, render and retry after a transient fetch failure', async ({page}) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const {MechanismSounds} = await import('/src/mechanisms.js');
+    const ctx = new OfflineAudioContext(1, 22050, 22050);
+    const noise = ctx.createBuffer(1, 22050, 22050);
+    const mechanism = new MechanismSounds(ctx, ctx.destination, noise);
+    const nativeFetch = window.fetch;
+    let failed = false;
+    window.fetch = async (...args) => {
+      if (!failed) {failed = true; throw new Error('simulated transient');}
+      return nativeFetch(...args);
+    };
+    try {await mechanism.preload();} catch {}
+    await mechanism.preload();
+    window.fetch = nativeFetch;
+    mechanism.setMode('forwarding');
+    mechanism.windEnvelope.gain.value = 1;
+    const rendered = await ctx.startRendering();
+    const data = rendered.getChannelData(0);
+    return {count:mechanism.buffers.size, rms:Math.sqrt(data.reduce((sum,x)=>sum+x*x,0)/data.length)};
+  });
+  expect(result.count).toBe(6);
+  expect(result.rms).toBeGreaterThan(0.01);
+});
