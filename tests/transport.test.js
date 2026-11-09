@@ -88,3 +88,20 @@ test("invalid saved positions are clamped and invalid side ignored", () => {
   t.flip();
   assert.equal(t.position, 0);
 });
+for (const side of ['A', 'B']) {
+  test(`flipping after finishing side ${side} resets the opposite side and persists its start`, () => {
+    const other = side === 'A' ? 'B' : 'A';
+    const t = new TapeTransport({test: {side, A: 12, B: 7}});
+    t.door(); t.insert(tape); t.door(); t.play();
+    assert.equal(t.tick(t.duration), true);
+    t.door();
+    assert.equal(t.flip(), true);
+    assert.equal(t.side, other);
+    assert.equal(t.position, 0);
+    assert.equal(t.snapshot().test[other], 0);
+    t.eject(); t.insert(tape);
+    assert.equal(t.position, 0);
+    t.door();
+    assert.equal(t.play(), true);
+  });
+}

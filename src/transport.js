@@ -64,9 +64,15 @@ export class TapeTransport {
   }
   flip() {
     if (!this.tape || !this.open) return false;
+    const atEnd = this.duration > 0 && this.position >= this.duration;
     this.remember();
     this.side = this.side === "A" ? "B" : "A";
-    this.restore();
+    if (atEnd) {
+      this.position = 0;
+      this.remember();
+    } else {
+      this.restore();
+    }
     return true;
   }
   tick(seconds) {

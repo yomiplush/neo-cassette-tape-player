@@ -17,7 +17,7 @@ An original, weathered 1980s cassette player for desktop and mobile browsers. No
 - Animated reels and tape packs, a mechanical-style counter, counter reset and automatic end stop.
 - Tape hiss, wow/flutter, softened highs, saturation and irregular gentle dropouts. Tape character remains at minimum wear.
 - Edited CC0 recordings for winding, button presses, stopping and opening/closing the hatch, with a procedural fallback.
-- Master volume and tape wear controls. Position is remembered separately for each tape and side.
+- Master volume and tape wear controls. Position is remembered separately for each tape and side. Flipping from the end of either side starts the opposite side at zero.
 - Local mixtapes made from your own audio files, stored in IndexedDB without uploading them.
 - Keyboard controls, accessible dialogs, reduced-motion support and mobile layouts.
 
