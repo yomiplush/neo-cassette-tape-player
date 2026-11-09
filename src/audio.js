@@ -157,6 +157,13 @@ export class CassetteAudio {
     this.source = c.createBufferSource();
     this.source.buffer = buffer;
     this.source.connect(this.input);
+    const source = this.source;
+    source.onended = () => {
+      source.disconnect();
+      if (this.source !== source) return;
+      this.source = null;
+      this.onPlaybackEnd?.();
+    };
     this.source.start(0, Math.min(offset, Math.max(0, buffer.duration - 0.01)));
     this.envelope.gain.setTargetAtTime(1, c.currentTime, 0.04);
     this.setMode("playing");

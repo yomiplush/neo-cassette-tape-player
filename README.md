@@ -19,7 +19,7 @@ An original, weathered 1980s cassette player for desktop and mobile browsers. No
 - Edited CC0 recordings for winding, button presses, stopping and opening/closing the hatch, with a procedural fallback.
 - Master volume and tape wear controls. Position is remembered separately for each tape and side. Flipping from the end of either side starts the opposite side at zero.
 - Local mixtapes made from your own audio files, stored in IndexedDB without uploading them.
-- Keyboard controls, accessible dialogs, reduced-motion support and mobile layouts.
+- Keyboard controls, accessible dialogs, reduced-motion support and mobile layouts. Transport and service symbols are original SVG image assets, avoiding platform-dependent emoji rendering.
 
 ## Development
 
@@ -45,10 +45,10 @@ Both editions share the same player, audio engine and storage model.
 
 | Edition | Build | Output | Layout |
 | --- | --- | --- | --- |
-| Demo / Pages | `npm run build` or `npm run build:demo` | `dist/` | Showcase and player |
+| Demo / Pages | `npm run build` or `npm run build:demo` | `dist/` | Single-viewport player, fitted deck and compact controls |
 | Self-hosted | `npm run build:selfhost` | `dist-selfhost/` | Player-focused, fixed mobile transport keys, landscape columns |
 
-The self-hosted layout supports narrow phones, safe areas, scrolling controls, orientation changes and dialogs that fit the viewport. Both editions include the weathered visuals, mechanical sounds and cassette animations.
+The demo fits the deck and essential controls into one viewport, with internally scrolling collection/help dialogs. The self-hosted layout supports narrow phones, safe areas, scrolling controls, orientation changes and dialogs that fit the viewport. Both editions include the weathered visuals, mechanical sounds and cassette animations.
 
 ## Cloudflare Pages
 
@@ -122,7 +122,7 @@ The first interaction enables Web Audio. This is an expressive simulation of a f
 - Electrical hiss and physical mechanism recordings use separate paths. Recorded winding loops change rate slightly with spool position and fade on stopping. Filtered stochastic noise provides a fallback.
 - Slow wow and faster flutter vary with wear. Minimum wear still retains filtering, noise and modulation.
 - Decoded audio is cached for up to two recordings with an 80 MiB budget. A single playing file must still be fully decoded, so longer files use more temporary memory.
-- Leaving the page or locking the screen stops playback. Background playback is not guaranteed. STOP cancels pending loads; network loads time out after 25 seconds.
+- Switching tabs preserves playback and pending play requests. The transport uses the audio clock, and natural audio completion stops the tape effects even if UI timers are throttled. Closing or navigating away from the page stops playback. Screen-lock/background behavior can still be restricted by the browser or OS. STOP cancels pending loads; network loads time out after 25 seconds.
 - Supported formats depend on the browser's decoder. MP3, WAV and M4A are typical choices; OGG support varies.
 - Browser storage cleanup can delete imported audio. Keep your original files.
 

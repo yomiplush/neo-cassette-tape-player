@@ -2134,3 +2134,126 @@ dialog::backdrop {
 [data-edition=selfhost] .case-controls button span{font-size:7px}
 @media(max-width:760px){.site-header{gap:12px}.site-header .header-note{display:none}.case-topline{font-size:6px}.case-controls{gap:5px}.case-controls button span{font-size:6px}.creator-links{gap:0}.creator-links a{width:44px;height:44px}}
 @media(max-width:420px){.site-header .wordmark span{display:none}.site-header .wordmark{font-size:30px}.creator-links img{width:32px;height:32px}}
+
+/* Demo: a single viewport listening room. Dialogs keep their own scrolling. */
+[data-edition="demo"] body {height:100dvh;overflow:hidden;padding:0 24px}
+[data-edition="demo"] #app {height:100%;display:grid;grid-template-rows:60px minmax(0,1fr) 34px;max-width:1160px;margin:auto;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+[data-edition="demo"] .site-header {height:100%;width:100%;padding:0}
+[data-edition="demo"] main {width:100%;min-height:0;margin:0}
+[data-edition="demo"] .intro,[data-edition="demo"] .bottom-note {display:none}
+[data-edition="demo"] .listening-space {height:100%;padding:14px 0;grid-template-columns:minmax(0,1fr) 300px;gap:30px;align-items:center}
+.device-slot {position:relative;min-width:0;min-height:0;height:100%;overflow:visible}
+[data-edition="demo"] .device-area {position:absolute;width:440px;max-width:none;left:50%;top:50%;margin:0;transform-origin:center}
+[data-edition="demo"] .liner {width:100%;padding:0;margin:0;max-width:none}
+[data-edition="demo"] .site-footer {margin:0;padding:0;width:100%;font-size:8px;align-items:center;min-height:0}
+[data-edition="demo"] #credits-open {min-height:30px;font-size:8px}
+[data-edition="demo"] .liner-empty h2 {font-size:26px}
+[data-edition="demo"] .tape-note {display:none}
+[data-edition="demo"] dialog {max-height:calc(100dvh - 28px);overflow:auto}
+@media(max-width:760px) and (orientation:portrait) {
+  [data-edition="demo"] body {padding:0 12px}
+  [data-edition="demo"] #app {grid-template-rows:50px minmax(0,1fr) 28px}
+  [data-edition="demo"] .listening-space {grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) 112px;gap:4px;padding:6px 0 0}
+  [data-edition="demo"] .device-area {width:350px}
+  [data-edition="demo"] .player {padding:15px 22px 10px}
+  [data-edition="demo"] .device-brand {margin-bottom:12px}
+  [data-edition="demo"] .device-top {height:16px}
+  [data-edition="demo"] .device-footer {display:none}
+  [data-edition="demo"] .liner-heading,[data-edition="demo"] .liner-subtitle,[data-edition="demo"] .track-category,[data-edition="demo"] .track-author,[data-edition="demo"] .liner-empty p,[data-edition="demo"] .outline-tape {display:none}
+  [data-edition="demo"] #current-title {font-size:15px;margin:0;letter-spacing:0}
+  [data-edition="demo"] .side-row {position:absolute;right:0;top:0;margin:0;font-size:9px}
+  [data-edition="demo"] #liner-loaded {position:relative;padding-right:135px}
+  [data-edition="demo"] .track-info {margin:3px 0 0;font-size:10px}
+  [data-edition="demo"] .track-info span,[data-edition="demo"] .position-track {display:none}
+  [data-edition="demo"] .liner-empty {padding:0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  [data-edition="demo"] .liner-empty h2 {font-size:15px;margin:0}
+  [data-edition="demo"] .liner-empty .primary {margin:0;width:auto;padding:8px;font-size:10px}
+  [data-edition="demo"] .sound-controls {margin-top:5px;padding-top:3px;display:grid;grid-template-columns:1fr 1fr;column-gap:18px;position:relative}
+  [data-edition="demo"] .control-heading {grid-column:1/-1;height:24px}
+  [data-edition="demo"] .control-heading button {min-width:32px;min-height:24px}
+  [data-edition="demo"] .slider-label {margin:0;grid-row:2}
+  [data-edition="demo"] #volume,[data-edition="demo"] #wear {grid-row:3;height:34px}
+  [data-edition="demo"] .wear-label label>span,[data-edition="demo"] .wear-scale,[data-edition="demo"] .sound-tags {display:none}
+  [data-edition="demo"] .site-footer>span {font-size:0}
+  [data-edition="demo"] .site-footer>span>span {display:none}
+}
+@media(max-height:500px) and (min-width:600px) {
+  [data-edition="demo"] body {padding:0 14px}
+  [data-edition="demo"] #app {grid-template-rows:44px minmax(0,1fr) 26px}
+  [data-edition="demo"] .listening-space {grid-template-columns:minmax(0,1fr) 240px;gap:18px;padding:6px 0}
+  [data-edition="demo"] .liner-heading,[data-edition="demo"] .liner-subtitle,[data-edition="demo"] .track-category,[data-edition="demo"] .outline-tape,[data-edition="demo"] .liner-empty p,[data-edition="demo"] .sound-tags,[data-edition="demo"] .wear-scale {display:none}
+  [data-edition="demo"] #current-title {font-size:21px;margin:0}
+  [data-edition="demo"] .side-row {margin:8px 0}
+  [data-edition="demo"] .track-info {margin:6px 0}
+  [data-edition="demo"] .sound-controls {margin-top:8px;padding-top:4px}
+  [data-edition="demo"] .slider-label {margin:3px 0 0}
+  [data-edition="demo"] .wear-label label>span {display:none}
+  [data-edition="demo"] .liner-empty .primary {margin-top:8px}
+  [data-edition="demo"] .site-footer>span>span {display:none}
+}
+[data-edition="demo"] .site-header {margin:0;min-width:0}
+[data-edition="demo"] #credits-open {min-height:24px;height:24px;padding:0}
+/* Reflow the case instead of scaling its touch targets. */
+[data-edition="demo"] .device-area {padding:0;display:flex;flex-direction:column}
+[data-edition="demo"] .device-top,[data-edition="demo"] .device-bottom {height:12px;min-height:12px}
+[data-edition="demo"] .device-shadow,[data-edition="demo"] .device-footer {display:none}
+[data-edition="demo"] .player {flex:1;min-height:0;padding:8px 12px;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:24px 34px minmax(40px,1fr) 30px 44px 8px 54px;gap:4px}
+[data-edition="demo"] .device-brand {padding:0;margin:0;align-items:center}
+[data-edition="demo"] .neo-logo {font-size:25px}
+[data-edition="demo"] .neo-logo span,[data-edition="demo"] .model-number span {display:none}
+[data-edition="demo"] .model-number {font-size:16px}
+[data-edition="demo"] .case-topline {margin:0;font-size:6px}
+[data-edition="demo"] .case-shelf {min-height:32px;font-size:7px}
+[data-edition="demo"] .door-surround {min-height:0;height:100%}
+[data-edition="demo"] .door {height:calc(100% - 4px);padding:5px;display:flex;flex-direction:column}
+[data-edition="demo"] .window-top {margin:0 2px 4px;font-size:5px}
+[data-edition="demo"] .door-bottom {margin:4px 2px 0;font-size:5px}
+[data-edition="demo"] .deck-window {flex:1;min-height:0;aspect-ratio:auto;container-type:size}
+[data-edition="demo"] #loaded-tape {width:min(94%,calc((100cqh - 8px) * 1.62))}
+[data-edition="demo"] .readout {padding:0;gap:12px;align-items:center}
+[data-edition="demo"] .counter-line {margin:0;gap:5px}
+[data-edition="demo"] #counter {font-size:17px}
+[data-edition="demo"] .micro-label,[data-edition="demo"] .vu-scale {display:none}
+[data-edition="demo"] .signal-label {margin:0 0 4px;font-size:6px}
+[data-edition="demo"] .case-controls {padding:0;margin:0;gap:5px}
+[data-edition="demo"] .case-controls button {height:44px;min-height:44px}
+[data-edition="demo"] .transport-labels {margin:0;align-items:center}
+[data-edition="demo"] .transport {padding:2px 2px 6px;gap:3px}
+[data-edition="demo"] .transport button,[data-edition="demo"] .transport button.pressed {min-height:44px;font-size:17px}
+@media(max-width:760px) and (orientation:portrait) {
+  [data-edition="demo"] .player {grid-template-rows:20px 32px minmax(32px,1fr) 26px 44px 8px 52px;gap:3px;padding:6px 10px}
+  [data-edition="demo"] .device-top,[data-edition="demo"] .device-bottom {height:8px;min-height:8px;font-size:5px}
+  [data-edition="demo"] .case-screw {width:5px;height:5px}
+  [data-edition="demo"] .liner-empty .primary {min-height:32px;padding:5px 8px}
+  [data-edition="demo"] .control-heading {height:20px}
+  [data-edition="demo"] #volume,[data-edition="demo"] #wear {height:30px}
+}
+@media(max-height:500px) and (min-width:600px) {
+  [data-edition="demo"] .player {grid-template-columns:minmax(0,1fr) 240px;grid-template-rows:44px 28px 44px 8px minmax(52px,1fr);gap:4px 10px}
+  [data-edition="demo"] .device-brand {grid-column:1;grid-row:1}
+  [data-edition="demo"] .case-topline {grid-column:2;grid-row:1}
+  [data-edition="demo"] .door-surround {grid-column:1;grid-row:2/6}
+  [data-edition="demo"] .readout {grid-column:2;grid-row:2}
+  [data-edition="demo"] .case-controls {grid-column:2;grid-row:3}
+  [data-edition="demo"] .transport-labels {grid-column:2;grid-row:4}
+  [data-edition="demo"] .transport {grid-column:2;grid-row:5;max-height:56px;align-self:start}
+}
+/* Original SVG image assets: no platform-dependent symbol or emoji fonts. */
+.control-icon {display:inline-block;width:20px;height:20px;vertical-align:middle;object-fit:contain;flex:none;pointer-events:none}
+.transport button {display:flex;align-items:center;justify-content:center}
+.transport .control-icon {width:24px;height:24px}
+.case-controls .control-icon {width:18px;height:18px}
+.close-dialog .control-icon {width:20px;height:20px}
+#about-open .control-icon {width:18px;height:18px}
+.primary .control-icon {filter:brightness(0) invert(1);width:16px;height:16px}
+.card-actions .control-icon {width:14px;height:14px}
+.outline-tape .control-icon {width:52px;height:52px;opacity:.5}
+@media(max-width:760px) and (orientation:portrait) and (max-height:600px) {
+  [data-edition="demo"] .listening-space {grid-template-rows:minmax(0,1fr) 72px}
+  [data-edition="demo"] .device-brand {display:none}
+  [data-edition="demo"] .player {grid-template-rows:32px minmax(64px,1fr) 26px 44px 8px 52px}
+  [data-edition="demo"] .control-heading {height:0}
+  [data-edition="demo"] .control-heading h3 {display:none}
+  [data-edition="demo"] #about-open {position:fixed;left:12px;bottom:0;width:30px;height:26px}
+  [data-edition="demo"] .track-info {display:none}
+}

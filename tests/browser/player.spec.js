@@ -27,7 +27,7 @@ test("insert, play, pause, wind, flip and eject on a phone", async ({
     ),
   ).toBe(true);
 });
-test("leaving during a delayed audio load never starts hidden playback", async ({
+test("switching tabs during a requested audio load preserves playback", async ({
   page,
 }) => {
   let release;
@@ -50,8 +50,11 @@ test("leaving during a delayed audio load never starts hidden playback", async (
     document.dispatchEvent(new Event("visibilitychange"));
   });
   release();
-  await expect(page.locator("#status")).not.toHaveText("LOADING…");
-  await expect(page.locator("#status")).toHaveText("READY");
+  await expect(page.locator("#status")).toContainText("PLAY");
+  const before = await page.locator("#track-time").textContent();
+  await page.waitForTimeout(1500);
+  await expect(page.locator("#track-time")).not.toHaveText(before);
+  await expect(page.locator("#status")).toContainText("PLAY");
 });
 test("STOP cancels a pending request and permits another tape immediately", async ({
   page,
@@ -207,4 +210,62 @@ test('social preview is available in initial HTML without executing JavaScript',
   const png = await cover.body();
   expect(png.readUInt32BE(16)).toBe(1200);
   expect(png.readUInt32BE(20)).toBe(630);
+});
+
+test('demo fits one viewport with reachable controls in portrait and landscape', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button',{name:'Open tape collection'}).click();
+  await page.locator('.load-tape').first().click();
+  await expect(page.locator('#status')).toHaveText('READY');
+  for (const [width,height] of [[1440,900],[1280,720],[390,844],[320,568],[320,480],[844,390]]) {
+    await page.setViewportSize({width,height});
+    await page.waitForTimeout(150);
+    const boxes = await page.locator('.creator-links a, #player, [data-action], #volume, #wear, #credits-open').evaluateAll(elements => elements.map(el => {
+      const r=el.getBoundingClientRect(); return {label:el.getAttribute('aria-label') || el.id, left:r.left, top:r.top, right:r.right, bottom:r.bottom, width:r.width,height:r.height};
+    }));
+    for (const b of boxes) {
+      expect(b.left, `${width}x${height} ${b.label}`).toBeGreaterThanOrEqual(-1);
+      expect(b.top).toBeGreaterThanOrEqual(-1);
+      expect(b.right).toBeLessThanOrEqual(width+1);
+      expect(b.bottom, `${width}x${height} ${b.label}`).toBeLessThanOrEqual(height+1);
+      expect(b.height).toBeGreaterThan(0);
+      if (["Play", "Pause", "Stop", "Rewind", "Fast forward", "Open or close door", "Flip side A/B", "Eject tape"].includes(b.label)) {
+        expect(b.height).toBeGreaterThanOrEqual(44);
+        expect(b.width).toBeGreaterThanOrEqual(44);
+      }
+    }
+    const tape = await page.locator('#loaded-tape .cassette').boundingBox();
+    expect(tape.width).toBeGreaterThanOrEqual(60);
+    expect(tape.height).toBeGreaterThanOrEqual(40);
+    expect(await page.evaluate(()=>document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+  }
+});
+
+test('playing survives visibility changes but page navigation still stops it', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button',{name:'Open tape collection'}).click();
+  await page.locator('.load-tape').first().click();
+  await expect(page.locator('#status')).toHaveText('READY');
+  await page.getByRole('button',{name:'Play',exact:true}).click();
+  await expect(page.locator('#status')).toContainText('PLAY');
+  await page.evaluate(()=>{
+    Object.defineProperty(document,'hidden',{value:true,configurable:true});
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  const before=await page.locator('#track-time').textContent();
+  await page.waitForTimeout(1300);
+  await expect(page.locator('#status')).toContainText('PLAY');
+  await expect(page.locator('#track-time')).not.toHaveText(before);
+  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
+  await expect(page.locator('#status')).toHaveText('READY');
+});
+
+test('physical transport and service keys use loaded image assets instead of font symbols', async ({page}) => {
+  await page.goto('/');
+  for (const action of ['play','pause','stop','rewind','forward','door','flip','eject']) {
+    const button=page.locator(`.transport [data-action="${action}"], .case-controls [data-action="${action}"]`);
+    await expect(button.locator('img.control-icon')).toHaveCount(1);
+    expect(await button.locator('img').evaluate(img=>img.complete && img.naturalWidth>0)).toBe(true);
+    expect(await button.textContent()).not.toMatch(/[▶◀■Ⅱ⏏↻↗]/);
+  }
 });
