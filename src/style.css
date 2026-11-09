@@ -2370,3 +2370,58 @@ dialog::backdrop {
   [data-edition="demo"] .liner #wear {grid-column:2;grid-row:3;height:30px}
   [data-edition="demo"] .liner .case-options {grid-column:1/-1;grid-row:4}
 }
+/* The inspection toolbar is stationary; every piece of case trim rotates as one. */
+.case-view-controls {position:relative;inset:auto;right:auto;top:auto;transform:none;z-index:10;display:flex;justify-content:flex-end;gap:6px;flex:none;height:44px;margin-bottom:8px;pointer-events:auto}
+.case-grip,.case-home {position:static;inset:auto;min-height:44px;padding:8px 12px;display:flex;gap:7px;align-items:center;background:#dedbca;color:#30483f;border-color:#77816b55;font-size:8px}
+.case-grip span {display:inline}
+.case-grip .control-icon,.case-home .control-icon {filter:none;width:17px;height:17px}
+.case-object {--case-depth:inherit;--case-half-depth:inherit}
+.device-area {--case-depth:76px;--case-half-depth:38px}
+.device-area[data-model="auto"] .case-front:after {background:linear-gradient(90deg,transparent 8%,#c4ae6377 8% 90%,transparent 90%) center 56px/100% 2px no-repeat,url('./assets/exposed-metal.svg') center/100% 100%}
+.device-area[data-model="auto"] .door {border-color:#9a926d;background:linear-gradient(140deg,#536661,#273f3c)}
+.device-area[data-model="auto"] .back-plate {border-color:#b6a86c;letter-spacing:1.3px}
+.head-carriage {width:22px;height:5px;border-radius:2px;background:linear-gradient(#b2b3a0,#5d6b60);box-shadow:0 1px 0 #061d20;transition:transform .25s ease}
+[data-direction="B"] .head-carriage {transform:translateX(-12px)}
+[data-direction="A"] .head-carriage {transform:translateX(12px)}
+.player.reversing .head-carriage {animation:head-shuttle .5s ease-in-out}
+@keyframes head-shuttle {50%{transform:translateY(3px) scale(.8);opacity:.4}}
+.case-options {grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-height:500px) and (min-width:600px) {
+  [data-edition="demo"] .case-options {grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+  [data-edition="demo"] .case-options label {font-size:7px;letter-spacing:0;white-space:nowrap}
+}
+/* Only material artwork is rasterized at lower tiers, never the interface text. */
+.player:before {background-image:var(--patina-texture,url('./assets/shell-patina.svg'))}
+.device-area .player:after {background-image:var(--metal-texture,url('./assets/exposed-metal.svg'))}
+.case-back {background-image:var(--metal-texture,url('./assets/exposed-metal.svg')),var(--patina-texture,url('./assets/shell-patina.svg')),repeating-linear-gradient(0deg,#fff1 0 1px,transparent 1px 3px),linear-gradient(115deg,var(--case-mid),var(--case-base))}
+.deck-window:after {background-image:linear-gradient(114deg,#d7d7a91c 0 25%,transparent 25.2% 63%,#e8deb40e 63.2%),var(--scuff-texture,url('./assets/tape-scuffs.svg'))}
+.cassette:after {background-image:var(--scuff-texture,url('./assets/tape-scuffs.svg'))}
+[data-quality="low"] .player:before {mix-blend-mode:normal;opacity:.65}
+[data-quality="low"] .case-object .case-front {box-shadow:inset 1px 1px #c5c5a940,inset -2px -2px #07161b70}
+[data-quality="low"] .case-back {background-image:var(--metal-texture),var(--patina-texture),linear-gradient(115deg,var(--case-mid),var(--case-base))}
+[data-quality="low"] .deck-window:after {background-image:var(--scuff-texture);box-shadow:none}
+[data-quality="low"] .spool .reel {animation-timing-function:steps(72,end)}
+[data-quality="medium"] .spool .reel {animation-timing-function:steps(90,end)}
+.device-area[data-model="auto"] .case-front:after {background-image:linear-gradient(90deg,transparent 8%,#c4ae6377 8% 90%,transparent 90%),var(--metal-texture,url('./assets/exposed-metal.svg'));background-position:center 56px,center;background-size:100% 2px,100% 100%;background-repeat:no-repeat}
+[data-edition="demo"] .listening-space {min-height:0}
+[data-edition="demo"] .device-area {max-width:calc(100% - 12px);max-height:calc(100% - 12px)}
+[data-edition="demo"] .liner {min-height:0}
+[data-edition="demo"] .liner .sound-controls {margin-top:16px;padding-top:10px}
+[data-edition="demo"] .liner .wear-label {margin-top:12px}
+[data-edition="demo"] .liner .case-options {margin-top:10px}
+@media(min-width:1025px),(orientation:landscape) {
+  [data-edition="demo"] .listening-space {grid-template-rows:minmax(0,1fr)}
+  [data-edition="demo"] .liner {max-height:100%;overflow:auto;overscroll-behavior:contain}
+  [data-edition="demo"] .liner-empty {padding-top:12px}
+  [data-edition="demo"] .liner-empty h2 {margin:10px 0;font-size:22px}
+  [data-edition="demo"] .liner-empty p {margin:8px 0}
+  [data-edition="demo"] .liner-empty .primary {margin-top:12px}
+}
+@media(max-height:500px) and (min-width:600px) {
+  [data-edition="demo"] .liner .sound-controls {margin-top:8px;padding-top:4px}
+  [data-edition="demo"] .liner .wear-label {margin-top:0}
+  [data-edition="demo"] .liner .case-options {margin-top:5px}
+}
+.case-object.case-sizing {transition:none!important}
+/* Hidden 3D face bounds must not create a phantom scroll area outside the room. */
+[data-edition="demo"] #app {overflow:clip}

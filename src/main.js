@@ -1,4 +1,5 @@
 import "./style.css";
+import { createAdaptiveRendering } from "./rendering.js";
 import { createCaseModel } from "./case-model.js";
 import { skins, applySkin } from "./skins.js";
 import { setupSettingsCurtain } from "./settings-curtain.js";
@@ -31,17 +32,21 @@ const finite = (n, fallback) =>
 audio.volume = finite(settings.volume, 0.65);
 audio.wear = finite(settings.wear, 0.5);
 audio.setProfile(settings.character);
+transport.setModel(settings.model);
+let displayQuality = ["low","medium","high"].includes(settings.displayQuality) ? settings.displayQuality : "auto";
 let selectedSkin = "harbor";
 let tapes = [...demos],
   busy = false,
   counterZero = 0,
   lastMode = "",
+  lastModel = "",
   toastTimer,
   flipping = false,
   servicePhase = "",
   flipController = null,
   generation = 0,
   playController = null;
+const display = createAdaptiveRendering({override:displayQuality,isActive:()=>busy || ["playing","forwarding","rewinding"].includes(transport.mode)});
 const esc = (s) =>
   String(s).replace(
     /[&<>"']/g,
@@ -67,7 +72,7 @@ $("#app").innerHTML = `
   <i class="case-screw tl"></i><i class="case-screw tr"></i><i class="case-screw bl"></i><i class="case-screw br"></i>
   <div class="device-brand"><div class="neo-logo">NEO<span>PORTABLE CASSETTE PLAYER</span></div><div class="model-number">NC-85<span>STEREO</span></div></div>
   <div class="case-topline"><button class="shelf-trigger case-shelf" aria-label="Open tape collection">TAPE BOX <span class="count">03</span></button><span id="door-state">DOOR LATCHED</span></div>
-  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="Toggle cassette window" title="Press the window to open or close"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><span>OPEN</span></div></div><div class="door-edge"></div></div>
+  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="Toggle cassette window" title="Press the window to open or close"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><i class="head-carriage" aria-hidden="true"></i><span>OPEN</span></div></div><div class="door-edge"></div></div>
   <div class="readout"><div class="counter-wrap"><span class="micro-label">TAPE COUNTER</span><div class="counter-line"><output id="counter">000</output><button id="reset-counter" aria-label="Reset counter">RESET</button></div></div><div class="signal-wrap"><div class="signal-label"><span class="led" id="led"></span><span id="status" role="status">NO TAPE</span></div><div class="vu-meter" aria-label="Audio level">${"<i></i>".repeat(12)}</div><div class="vu-scale"><span>−20</span><span>−10</span><span>0</span><span>+3</span></div></div></div>
  <div class="deck-actions case-controls"><button data-action="door" aria-label="Open or close door">${icon("door")} <span>OPEN / CLOSE</span></button><button data-action="flip" aria-label="Flip side A/B">${icon("flip")} <span>FLIP A / B</span></button><button data-action="eject" aria-label="Eject tape">${icon("eject")} <span>EJECT TAPE</span></button></div>
   <div class="transport-labels"><span>REW</span><span>F.FWD</span><span>STOP</span><span>PLAY</span><span>PAUSE</span></div>
@@ -77,7 +82,7 @@ $("#app").innerHTML = `
 
  </div>
  <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">${icon("cassette")}</span><h2>What is on your tape?</h2><p>Pick one from the collection.<br>Find a sound for your state of mind.</p><button class="shelf-trigger primary">Choose a tape <span>${icon("arrow")}</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="side-row"><span>SIDE <b id="side-label">A</b></span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><p class="tape-note">Rewind instead of skipping.<br>Open the door and flip to the other side.</p></div>
- <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div><div class="case-options"><label for="case-skin">CASE FINISH<select id="case-skin">${skins.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select></label><label for="tape-character">TAPE CHARACTER<select id="tape-character"><option value="archive">Original archive</option><option value="light">Light / Home dub</option><option value="medium">Medium / Street copy</option><option value="heavy">Heavy / Attic find</option></select></label></div></div>
+ <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div><div class="case-options"><label for="case-skin">FINISH<select id="case-skin">${skins.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select></label><label for="tape-character">TONE<select id="tape-character"><option value="archive">Original archive</option><option value="light">Light / Home dub</option><option value="medium">Medium / Street copy</option><option value="heavy">Heavy / Attic find</option></select></label><label for="deck-model">DECK<select id="deck-model"><option value="manual">NC-85 / Manual flip</option><option value="auto">NR-88 / Auto reverse</option></select></label><label for="render-quality">DISPLAY<select id="render-quality"><option value="auto">Auto / Adaptive</option><option value="low">Economy / 50%</option><option value="medium">Balanced / 75%</option><option value="high">Full detail / 100%</option></select></label></div></div>
  </aside></section>
  <section class="bottom-note"><span>01 — PUT THE WORLD ON PAUSE.</span><p>Even the rewinding becomes part of the music.</p><span>DESIGNED FOR SLOW LISTENING.</span></section>
 </main><footer class="site-footer"><span>NEO CASSETTE <span>— A SMALL TRIP BACK.</span></span><button id="credits-open">CREDITS & LICENSES</button></footer>
@@ -93,7 +98,17 @@ $("#case-skin").value = selectedSkin;
 $("#tape-character").value = audio.profile;
 $("#case-skin").onchange = event => {selectedSkin=applySkin($(".device-area"),event.target.value);persist();};
 $("#tape-character").onchange = event => {audio.setProfile(event.target.value);persist();};
-const caseModel = createCaseModel({player:$("#player"), device:$(".device-area"), icon, isBusy:()=>busy || flipping});
+const caseModel = createCaseModel({player:$("#player"), device:$(".device-area"), icon, isBusy:()=>busy || flipping,getBudget:()=>display.state});
+caseModel.setVariant(transport.model);
+$("#deck-model").value = transport.model;
+$("#render-quality").value = displayQuality;
+$("#deck-model").onchange = event => {
+  cancelPlayback();flipController?.abort();flipController=null;generation++;busy=false;flipping=false;servicePhase="";
+  $("#player").classList.remove("reversing");
+  transport.stop(); audio.setMode("stopped"); transport.setModel(event.target.value);
+  caseModel.home({animate:false});caseModel.setVariant(transport.model);counterZero=0;persist();render();
+};
+$("#render-quality").onchange = event => {displayQuality=event.target.value;display.setOverride(displayQuality);persist();};
 setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"), controls:$(".sound-controls"), closeButton:$("#settings-close")});
 
 // Move the same controls outside the case stacking context on pocket-sized screens.
@@ -161,6 +176,8 @@ function persist() {
       wear: audio.wear,
       skin: selectedSkin,
       character: audio.profile,
+      model: transport.model,
+      displayQuality,
     })
   )
     message(
@@ -234,7 +251,16 @@ function render() {
     "winding",
     mode === "rewinding" || mode === "forwarding",
   );
-  $("#player").classList.toggle("reverse", mode === "rewinding");
+  $("#player").classList.toggle("reverse", mode === "rewinding" || (mode === "playing" && transport.model === "auto" && transport.side === "B"));
+  $("#player").dataset.direction = transport.side;
+  if(lastModel !== transport.model) {
+    lastModel = transport.model;
+  $(".model-number").innerHTML = transport.model === "auto" ? 'NR-88<span>AUTO REVERSE</span>' : 'NC-85<span>STEREO</span>';
+  $(".back-brand small").textContent = transport.model === "auto" ? "NR-88 / AUTO REVERSE" : "NC-85 / PERSONAL STEREO";
+  $(".window-top > span:first-child").textContent = transport.model === "auto" ? "BI-DIRECTIONAL TAPE TRANSPORT" : "PRECISION TAPE TRANSPORT";
+  $('[data-action="flip"] span').textContent = transport.model === "auto" ? "DIRECTION A / B" : "FLIP A / B";
+  }
+
   $("#loaded-tape").hidden = !t;
   $("#liner-empty").hidden = !!t;
   $("#liner-loaded").hidden = !t;
@@ -271,7 +297,7 @@ function render() {
   $$("[data-action]").forEach((b) => {
     const a = b.dataset.action;
     b.disabled =
-      (busy && !(["stop", "door", "flip", "eject"].includes(a) && playController)) ||
+      (busy && !((["stop", "door", "flip", "eject"].includes(a) && playController) || (a === "stop" && flipController && servicePhase === "AUTO REVERSE…"))) ||
       (["play", "pause", "rewind", "forward"].includes(a) &&
         (!t || transport.open)) ||
       (["flip", "eject"].includes(a) && !t);
@@ -279,7 +305,7 @@ function render() {
   if (t) {
     $("#loaded-tape .cassette").style.setProperty("--tape-color", t.color);
     $("#loaded-tape .tape-title").textContent = t.title;
-    $("#loaded-tape .tape-side").textContent = transport.side;
+    $("#loaded-tape .tape-side").textContent = transport.model === "auto" ? "A" : transport.side;
     $("#current-title").textContent = t.title;
     $("#current-subtitle").textContent = t.subtitle;
     $("#track-category").textContent = `${t.number} / ${t.genre}`;
@@ -288,7 +314,8 @@ function render() {
       `${time(transport.position)} / ${time(transport.duration)}`;
     $("#track-name").textContent = t.sides[transport.side].title;
     $("#track-author").textContent = `${t.author} · ${t.license}`;
-    const p = transport.duration ? transport.position / transport.duration : 0;
+    const progress = transport.duration ? transport.position / transport.duration : 0;
+    const p = transport.model === "auto" && transport.side === "B" ? 1-progress : progress;
     $("#position-fill").style.width = `${p * 100}%`;
     $("#player").style.setProperty(
       "--left-pack",
@@ -331,7 +358,8 @@ async function action(fn) {
     }
   }
 }
-async function play() {
+async function play({continueCycle=false} = {}) {
+  const resuming = transport.mode === "paused";
   if (!transport.tape || transport.open)
     return message("Load a tape and close the door.");
   if (transport.position >= transport.duration)
@@ -359,8 +387,9 @@ async function play() {
     // Decoder duration may differ slightly from MP3 container metadata.
     side.duration = buffer.duration;
     audio.delta();
-    transport.play();
+    transport.play({continueCycle:continueCycle || resuming});
     audio.start(buffer, transport.position);
+    display.wake();
   } finally {
     clearTimeout(timer);
     if (playController === controller) playController = null;
@@ -422,6 +451,12 @@ async function service(name) {
   const resized = () => { if (innerWidth !== width) controller.abort(); }; window.addEventListener("resize", resized);
   try {
     if (name === "door") { await moveDoor(!wasOpen, signal); return; }
+    if (name === "flip" && transport.model === "auto") {
+      if (!await moveDoor(false, signal)) return;
+      servicePhase="DIRECTION…";$("#player").classList.add("reversing");render();
+      if(await waitForMechanism(450,signal)){transport.switchDirection();audio.sound("seat");counterZero=0;persist();}
+      $("#player").classList.remove("reversing");return;
+    }
     if (!await moveDoor(true, signal)) return;
     frameTape(); if (signal.aborted) return;
     if (name === "flip") {
@@ -449,6 +484,10 @@ function cancelPlayback() {
   render();
 }
 function dispatch(name) {
+  if (name === "stop" && flipController && servicePhase === "AUTO REVERSE…") {
+    flipController.abort();flipController=null;generation++;busy=false;servicePhase="";
+    transport.stop();audio.setMode("stopped");persist();render();return;
+  }
   if (["stop","door","flip","eject"].includes(name) && playController) {
     cancelPlayback();
     audio.sound("click");
@@ -606,23 +645,39 @@ document.addEventListener("keydown", (e) => {
     dispatch(commands[e.key]);
   }
 });
+let autoQueued = false;
+function queueAutoReverse() {
+  if(autoQueued || !transport.reversePending)return;
+  autoQueued=true;
+  queueMicrotask(()=>{autoQueued=false;if(transport.reversePending && !busy) void action(autoReverse);});
+}
+async function autoReverse() {
+  if(!transport.reversePending || transport.model !== "auto")return;
+  const controller=new AbortController();flipController=controller;
+  servicePhase="AUTO REVERSE…";$("#player").classList.add("reversing");render();
+  try {
+    audio.sound("stop");
+    if(!await waitForMechanism(650,controller.signal))return;
+    if(!transport.reverseAtEnd())return;
+    audio.sound("seat");counterZero=0;servicePhase="";persist();render();
+    await play({continueCycle:true});
+  } finally {
+    if(flipController===controller)flipController=null;
+    servicePhase="";$("#player").classList.remove("reversing");render();
+  }
+}
 function advance() {
-  const ended = transport.tick(audio.delta());
-  if (ended) {
-    audio.setMode("stopped");
-    message("Click. End of tape.");
-    persist();
+  const ended=transport.tick(audio.delta());
+  if(ended){
+    audio.setMode("stopped");persist();
+    if(transport.reversePending)queueAutoReverse();else message("Click. End of tape.");
   }
   return ended;
 }
 audio.onPlaybackEnd = () => {
-  if (transport.mode !== "playing") return;
-  audio.delta();
-  transport.position = transport.duration;
-  transport.stop();
-  audio.setMode("stopped");
-  persist();
-  render();
+  if(transport.mode !== "playing")return;
+  audio.delta();transport.finishPlayback();audio.setMode("stopped");persist();render();
+  if(transport.reversePending)queueAutoReverse();
 };
 function interrupt() {
   flipController?.abort();
@@ -643,22 +698,16 @@ window.addEventListener("pagehide", () => {
   interrupt();
   persist();
 });
-setInterval(() => {
-  advance();
-  if (
-    audio.ctx &&
-    audio.ctx.state !== "running" &&
-    transport.mode !== "stopped" &&
-    !busy
-  ) {
-    transport.stop();
-    audio.setMode("stopped");
-    render();
-  }
-  if (transport.duration)
-    audio.setSpoolPosition(transport.position / transport.duration);
-  render();
-}, 80);
+function updateTransport() {
+  let changed=advance();
+  if(audio.ctx && audio.ctx.state !== "running" && transport.mode !== "stopped" && !busy){transport.stop();audio.setMode("stopped");changed=true;}
+  if(transport.duration)audio.setSpoolPosition(transport.position/transport.duration);
+  if(transport.reversePending && !busy)queueAutoReverse();
+  const active=transport.mode !== "stopped" || busy;
+  if(!document.hidden && (active || changed))render();
+  setTimeout(updateTransport,document.hidden ? 1000 : active ? display.state.uiInterval : 400);
+}
+setTimeout(updateTransport,display.state.uiInterval);
 setInterval(() => {
   if (transport.mode !== "stopped") persist();
 }, 2500);

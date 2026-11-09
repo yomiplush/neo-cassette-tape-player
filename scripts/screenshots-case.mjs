@@ -14,6 +14,16 @@ for(const skin of ['harbor','silver','midnight','signal','ivory']){
   await page.locator('#settings-curtain').waitFor({state:'hidden'});
   await page.screenshot({path:`docs/screenshots/skin-${skin}.png`});
 }
+await page.getByRole('button',{name:'Open settings'}).click();
+await page.locator('#case-skin').selectOption('harbor');
+await page.getByRole('button',{name:'Back to the deck'}).click();
+await page.locator('#settings-curtain').waitFor({state:'hidden'});
+await page.screenshot({path:'docs/screenshots/model-nc85.png'});
+await page.getByRole('button',{name:'Rotate player'}).focus();
+for(let i=0;i<2;i++)await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(550);
+await page.screenshot({path:'docs/screenshots/case-depth.png'});
+await page.getByRole('button',{name:'Return player to front'}).click();
 await page.getByRole('button',{name:'Rotate player'}).focus();
 for(let i=0;i<8;i++)await page.keyboard.press('ArrowRight');
 await page.waitForTimeout(500);
@@ -22,4 +32,11 @@ await page.getByRole('button',{name:'Return player to front'}).click();
 await page.getByRole('button',{name:'Open settings'}).click();
 await page.waitForTimeout(650);
 await page.screenshot({path:'docs/screenshots/settings-curtain.png'});
+await page.locator('#deck-model').selectOption('auto');
+await page.getByRole('button',{name:'Back to the deck'}).click();
+await page.locator('#settings-curtain').waitFor({state:'hidden'});
+await page.getByRole('button',{name:'Rotate player'}).focus();
+for(let i=0;i<2;i++)await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(550);
+await page.screenshot({path:'docs/screenshots/model-nr88.png'});
 await browser.close();

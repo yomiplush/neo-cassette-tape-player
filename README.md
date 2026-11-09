@@ -210,3 +210,29 @@ On phones/tablets up to 1024px in portrait, the image gear button lowers a fabri
 <img src="docs/screenshots/skin-silver.png" alt="Original silver finish" width="240"> <img src="docs/screenshots/case-back.png" alt="Rotated case showing its belt clip and battery cover" width="240"> <img src="docs/screenshots/settings-curtain.png" alt="Portrait settings curtain" width="240">
 
 Regenerate these previews against the development server with `node scripts/screenshots-case.mjs`.
+
+## Manual or auto-reverse hardware
+
+**DECK** selects the original **NC-85 / Manual flip** or **NR-88 / Auto reverse**. The NR-88 has its own trim, model markings, head carriage and slightly different case depth. It switches track direction without opening the door or physically flipping the cassette. Each new play cycle permits one automatic reversal, then stops at the end of the second side. Starting on B gives B→A→stop. Pausing preserves that cycle; winding never triggers automatic reversal. STOP cancels a pending reversal. Changing hardware stops playback and cancels pending loads.
+
+The NR-88's **DIRECTION A / B** control follows the physical tape position when switching direction midway; automatic end reversal starts the opposite side at zero. Tape-pack graphics retain their physical orientation on B. The NC-85 keeps the existing manual FLIP and independent saved side positions.
+
+## Adaptive rendering
+
+The case now has a thicker six-face shell and a stationary **TURN / FRONT** toolbar. TURN advances by 90 degrees; dragging and keyboard rotation remain available. The old flat top/bottom decorations have been removed, so they cannot float outside the rotating case.
+
+**DISPLAY** defaults to **Auto**. It uses optional device hints and measured visible animation-frame intervals, with hysteresis, to choose:
+
+| Tier | Drag pose update budget | Material texture dimensions | Active UI interval |
+| --- | --- | --- | --- |
+| Economy | Up to 24 fps | 50% | 120 ms |
+| Balanced | Up to 30 fps | 75% | 80 ms |
+| Full | Up to 60 fps | Original SVG detail | 50 ms |
+
+These are update budgets rather than guaranteed display frame rates. CSS compositor transitions are left to the browser. Hidden/back-facing surfaces are culled; CSS backface culling handles the interpolated pose while turning. The visible-frame monitor sleeps when idle or hidden. Transport timing continues to use the AudioContext clock and is independent of visual updates.
+
+This is a DOM/CSS 3D renderer, so **AMD FSR is not used**. Only the original weathering/material artwork is rasterized at lower tiers; text, buttons and model geometry retain native resolution. Lower tiers simplify selected shadows and texture layers. Manual Economy/Balanced/Full overrides persist. Automatic hardware detection is a hint and cannot identify every low-end device, so the manual override remains available.
+
+Regenerate the lightweight material assets from the original SVGs with `node scripts/prepare-materials.mjs` against the development server. The outputs are checked in; normal builds do not need a browser rasterization step. Reference and design notes: [case and reverse notes](docs/research/case-quality-auto-reverse.md).
+
+<img src="docs/screenshots/case-depth.png" alt="Thicker six-face case with a clean stationary toolbar" width="260"> <img src="docs/screenshots/model-nr88.png" alt="Original NR-88 auto-reverse model" width="260">

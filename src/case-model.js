@@ -1,5 +1,6 @@
 // DOM geometry keeps the existing buttons as actual, clickable front-face controls.
-export function createCaseModel({player, device, icon, isBusy}) {
+export function createCaseModel({player, device, icon, isBusy, getBudget = () => ({fps:30})}) {
+  device.querySelectorAll(".device-top,.device-bottom,.device-shadow").forEach(node=>node.remove());
   const object = document.createElement('div');
   object.className = 'case-object';
   object.dataset.rotated = 'false';
@@ -17,19 +18,56 @@ export function createCaseModel({player, device, icon, isBusy}) {
     object.append(face);
   }
   const view=document.createElement('div');view.className='case-view-controls';
-  view.innerHTML=`<button class="case-grip" aria-label="Rotate player" title="Drag to turn. Arrow keys rotate; Home returns to front.">${icon('flip')}<span>DRAG TO TURN</span></button><button class="case-home" aria-label="Return player to front" hidden>${icon('arrow')}<span>FRONT</span></button>`;
-  device.append(view);
+  view.innerHTML=`<button class="case-grip" aria-label="Rotate player" title="Turn 90 degrees, or drag. Arrow keys rotate; Home returns to front.">${icon('flip')}<span>TURN</span></button><button class="case-home" aria-label="Return player to front">${icon('arrow')}<span>FRONT</span></button>`;
+  device.prepend(view);
   const grip=view.querySelector('.case-grip'), reset=view.querySelector('.case-home');
-  let yaw=0,pitch=0,gesture=null,suppressUntil=0;
+  let yaw=0,pitch=0,gesture=null,suppressUntil=0,frame=null,lastPaint=0;
+  const faces = {front:player,back,left:object.querySelector('.case-side-left'),right:object.querySelector('.case-side-right'),top:object.querySelector('.case-side-top'),bottom:object.querySelector('.case-side-bottom')};
+  let sizingFrame=null;
+  const depth = () => {
+    const auto = device.dataset.model === 'auto';
+    const size = Math.max(auto ? 48 : 50, Math.min(auto ? 88 : 96, object.offsetWidth * (auto ? .16 : .19)));
+    if(device.style.getPropertyValue('--case-depth')===`${size}px`)return;
+    object.classList.add('case-sizing');
+    device.style.setProperty('--case-depth',`${size}px`);
+    device.style.setProperty('--case-half-depth',`${size/2}px`);
+    object.getBoundingClientRect();
+    if(sizingFrame!==null)cancelAnimationFrame(sizingFrame);
+    sizingFrame=requestAnimationFrame(()=>{object.classList.remove('case-sizing');sizingFrame=null;});
+  };
+  new ResizeObserver(depth).observe(object);
+  const setVariant = model => {device.dataset.model=model === 'auto'?'auto':'manual';depth();};
+  const cull = () => {
+    const y=yaw*Math.PI/180,x=pitch*Math.PI/180;
+    const visibility={front:Math.cos(y)*Math.cos(x),back:-Math.cos(y)*Math.cos(x),left:Math.sin(y)*Math.cos(x),right:-Math.sin(y)*Math.cos(x),top:-Math.sin(x),bottom:Math.sin(x)};
+    for(const [name,face] of Object.entries(faces))face.style.visibility=visibility[name]>.001?'visible':'hidden';
+  };
+  let previousYaw=0,previousPitch=0;
+  object.addEventListener('transitionend',event=>{if(event.target===object && event.propertyName==='transform')cull();});
   const paint=()=>{
     object.style.setProperty('--case-yaw',`${yaw}deg`);object.style.setProperty('--case-pitch',`${pitch}deg`);
     const turned=Math.abs(yaw%360)>.1 || Math.abs(pitch)>.1;
-    object.dataset.rotated=String(turned);reset.hidden=!turned;
+    object.dataset.rotated=String(turned);reset.disabled=!turned;
+    const changed=previousYaw!==yaw || previousPitch!==pitch;
+    previousYaw=yaw;previousPitch=pitch;
+    if(changed && !object.classList.contains('case-moving') && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+      // During a compositor turn, CSS backface culling follows the interpolated pose.
+      for(const face of Object.values(faces))face.style.visibility='visible';
+    } else cull();
     grip.setAttribute('aria-description',`Rotation ${Math.round(yaw)} degrees. Use arrow keys to rotate or Home to return.`);
   };
+  const schedulePaint = () => {
+    if(frame !== null)return;
+    const tick = now => {
+      if(now-lastPaint < 1000/getBudget().fps){frame=requestAnimationFrame(tick);return;}
+      frame=null;lastPaint=now;paint();
+    };
+    frame=requestAnimationFrame(tick);
+  };
+  const flush = () => {if(frame!==null)cancelAnimationFrame(frame);frame=null;paint();};
   const home=({animate=true}={})=>{
     if(!animate) object.classList.add('case-moving');
-    yaw=0;pitch=0;paint();
+    yaw=0;pitch=0;flush();
     if(!animate) requestAnimationFrame(()=>{if(!gesture)object.classList.remove('case-moving');});
   };
   reset.addEventListener('click',()=>home());
@@ -47,24 +85,25 @@ export function createCaseModel({player, device, icon, isBusy}) {
     if(!gesture.dragging && Math.hypot(dx,dy)<8)return;
     if(!gesture.dragging){gesture.dragging=true;device.setPointerCapture(event.pointerId);object.classList.add('case-moving');}
     event.preventDefault();
-    yaw=gesture.yaw+dx*.55;pitch=Math.max(-65,Math.min(65,gesture.pitch-dy*.4));paint();
+    yaw=gesture.yaw+dx*.55;pitch=Math.max(-65,Math.min(65,gesture.pitch-dy*.4));schedulePaint();
   });
   const release=event=>{
     if(!gesture || event.pointerId!==gesture.id)return;
     if(gesture.dragging)suppressUntil=performance.now()+350;
     if(device.hasPointerCapture(event.pointerId))device.releasePointerCapture(event.pointerId);
-    gesture=null;object.classList.remove('case-moving');
+    gesture=null;flush();object.classList.remove('case-moving');
   };
   device.addEventListener('pointerup',release);device.addEventListener('pointercancel',release);
   device.addEventListener('click',event=>{
     if(event.detail!==0 && performance.now()<suppressUntil){event.preventDefault();event.stopImmediatePropagation();}
   },true);
-  grip.addEventListener('click',()=>{if(!isBusy()){yaw+=30;paint();}});
+  grip.addEventListener('click',()=>{if(!isBusy()){yaw+=90;paint();}});
   grip.addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(event.key))return;
     event.preventDefault();event.stopPropagation();if(isBusy())return;
     if(event.key==='Home')home();
     else {yaw+=event.key==='ArrowLeft'?-20:event.key==='ArrowRight'?20:0;pitch=Math.max(-65,Math.min(65,pitch+(event.key==='ArrowUp'?15:event.key==='ArrowDown'?-15:0)));paint();}
   });
-  return {home};
+  paint();setVariant(device.dataset.model);
+  return {home,setVariant};
 }

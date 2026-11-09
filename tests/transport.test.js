@@ -105,3 +105,30 @@ for (const side of ['A', 'B']) {
     assert.equal(t.play(), true);
   });
 }
+for (const start of ['A','B']) {
+  test(`auto-reverse starting at ${start} plays the other side once, then stops`,()=>{
+    const t=new TapeTransport({test:{side:start,A:0,B:0}});
+    t.setModel('auto');t.door();t.insert(tape);t.door();t.play();
+    t.tick(t.duration);
+    assert.equal(t.reversePending,true);
+    assert.equal(t.reverseAtEnd(),true);
+    assert.equal(t.side,start==='A'?'B':'A');
+    assert.equal(t.position,0);
+    assert.equal(t.open,false);
+    t.play({continueCycle:true});t.tick(t.duration);
+    assert.equal(t.mode,'stopped');assert.equal(t.reversePending,false);
+    assert.equal(t.reverseAtEnd(),false);
+  });
+}
+test('winding, STOP and model changes never accidentally arm auto-reverse',()=>{
+  const t=new TapeTransport();t.setModel('auto');t.door();t.insert(tape);t.door();
+  t.wind(1);t.tick(20);assert.equal(t.reversePending,false);
+  t.position=0;t.play();t.tick(60);assert.equal(t.reversePending,true);
+  t.stop();assert.equal(t.reverseAtEnd(),false);
+  t.position=0;t.play();t.tick(60);t.setModel('manual');assert.equal(t.reverseAtEnd(),false);
+});
+test('direction switch follows the physical tape position with the door shut',()=>{
+  const t=new TapeTransport();t.setModel('auto');t.door();t.insert(tape);t.door();t.play();t.tick(15);t.stop();
+  assert.equal(t.switchDirection(),true);assert.equal(t.side,'B');assert.equal(t.position,30);
+  assert.equal(t.switchDirection(),true);assert.equal(t.position,15);assert.equal(t.open,false);
+});

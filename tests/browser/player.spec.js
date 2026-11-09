@@ -53,6 +53,7 @@ test("switching tabs during a requested audio load preserves playback", async ({
   await expect(page.locator("#status")).toContainText("PLAY");
   const before = await page.locator("#track-time").textContent();
   await page.waitForTimeout(1500);
+  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new Event('visibilitychange'));});
   await expect(page.locator("#track-time")).not.toHaveText(before);
   await expect(page.locator("#status")).toContainText("PLAY");
 });
@@ -220,7 +221,7 @@ test('demo fits one viewport with reachable controls in portrait and landscape',
   for (const [width,height] of [[1440,900],[1280,720],[390,844],[320,568],[320,480],[844,390]]) {
     await page.setViewportSize({width,height});
     await page.waitForTimeout(150);
-    const boxes = await page.locator('.creator-links a, #player, [data-action], #volume, #wear, #case-skin, #tape-character, #credits-open').evaluateAll(elements => elements.filter(el=>el.getClientRects().length).map(el => {
+    const boxes = await page.locator('.creator-links a, #player, [data-action], #volume, #wear, #case-skin, #tape-character, #deck-model, #render-quality, #credits-open').evaluateAll(elements => elements.filter(el=>el.getClientRects().length).map(el => {
       const r=el.getBoundingClientRect(); return {label:el.getAttribute('aria-label') || el.id, left:r.left, top:r.top, right:r.right, bottom:r.bottom, width:r.width,height:r.height};
     }));
     for (const b of boxes) {
@@ -254,6 +255,7 @@ test('playing survives visibility changes but page navigation still stops it', a
   });
   const before=await page.locator('#track-time').textContent();
   await page.waitForTimeout(1300);
+  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new Event('visibilitychange'));});
   await expect(page.locator('#status')).toContainText('PLAY');
   await expect(page.locator('#track-time')).not.toHaveText(before);
   await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
