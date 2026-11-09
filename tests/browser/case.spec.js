@@ -91,3 +91,15 @@ test('metal highlight follows case rotation at full detail',async({page})=>{
   const after=await page.locator('.case-object').evaluate(e=>e.style.getPropertyValue('--light-x'));
   expect(after).not.toBe(before);
 });
+
+
+test('stationary TURN handle can drag the uniformly scaled model',async({page})=>{
+  await page.goto('/');
+  const box=await page.getByRole('button',{name:'Rotate player'}).boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+  await page.mouse.down();
+  await page.mouse.move(box.x+box.width/2+80,box.y+box.height/2,{steps:8});
+  await page.mouse.up();
+  await expect(page.locator('.case-object')).toHaveAttribute('data-rotated','true');
+  await expect(page.locator('.case-object')).not.toHaveCSS('--case-yaw','90deg');
+});

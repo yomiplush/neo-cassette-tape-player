@@ -1,6 +1,6 @@
 # Third-party notices
 
-Application code: MIT (see LICENSE). Demo music: CC0 1.0 (see vendor/duru-ai/LICENSE).
+Application code: MIT (see LICENSE). Current demo music: creator-supplied MobileAmbience recordings (see public/licenses/DEMO-MUSIC.txt). The previous demo source remains in vendor/duru-ai with its original CC0 license; those recordings are no longer served.
 
 The packages below are build/test dependencies; the browser app has no third-party runtime JavaScript dependencies. Installed dependency notices are reproduced here for source distribution. Platform-specific optional packages retain their licenses in their own distributions.
 

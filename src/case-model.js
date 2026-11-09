@@ -22,6 +22,11 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
   view.innerHTML=`<button class="case-grip" aria-label="Rotate player" title="Turn 90 degrees, or drag. Arrow keys rotate; Home returns to front.">${icon('flip')}<span>TURN</span></button><button class="case-home" aria-label="Return player to front">${icon('arrow')}<span>FRONT</span></button>`;
   device.prepend(view);
   const grip=view.querySelector('.case-grip'), reset=view.querySelector('.case-home');
+  // The stationary toolbar may live beside the scaled model, keeping native hit targets.
+  const listen=(type,handler,options)=>{
+    device.addEventListener(type,handler,options);
+    view.addEventListener(type,event=>{if(!device.contains(view))handler(event);},options);
+  };
   let yaw=0,pitch=0,gesture=null,suppressUntil=0,frame=null,lastPaint=0;
   const faces = {front:player,back,left:object.querySelector('.case-side-left'),right:object.querySelector('.case-side-right'),top:object.querySelector('.case-side-top'),bottom:object.querySelector('.case-side-bottom')};
   let sizingFrame=null;
@@ -75,7 +80,7 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
     if(!animate) requestAnimationFrame(()=>{if(!gesture)object.classList.remove('case-moving');});
   };
   reset.addEventListener('click',()=>home());
-  device.addEventListener('pointerdown',event=>{
+  listen('pointerdown',event=>{
     suppressUntil=0;
     if(!event.isPrimary || event.button!==0 || isBusy())return;
     const interactive=event.target.closest('button,input,select,a,label');
@@ -83,7 +88,7 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
     if(!event.target.closest('.case-object,.case-grip'))return;
     gesture={id:event.pointerId,x:event.clientX,y:event.clientY,yaw,pitch,dragging:false};
   });
-  device.addEventListener('pointermove',event=>{
+  listen('pointermove',event=>{
     if(!gesture || event.pointerId!==gesture.id)return;
     const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;
     if(!gesture.dragging && Math.hypot(dx,dy)<8)return;
@@ -97,8 +102,8 @@ export function createCaseModel({player, device, icon, isBusy, getBudget = () =>
     if(device.hasPointerCapture(event.pointerId))device.releasePointerCapture(event.pointerId);
     gesture=null;flush();object.classList.remove('case-moving');
   };
-  device.addEventListener('pointerup',release);device.addEventListener('pointercancel',release);
-  device.addEventListener('click',event=>{
+  listen('pointerup',release);listen('pointercancel',release);
+  listen('click',event=>{
     if(event.detail!==0 && performance.now()<suppressUntil){event.preventDefault();event.stopImmediatePropagation();}
   },true);
   grip.addEventListener('click',()=>{if(!isBusy()){yaw+=90;paint();}});

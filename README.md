@@ -2,7 +2,7 @@
 
 **A little imperfection. Just right.**
 
-An original, weathered 1980s cassette player for desktop and mobile browsers. No accounts, backend or external music service required. The application is **MIT licensed**; six included demo tracks and mechanical recordings are **CC0 1.0**.
+An original, weathered 1980s cassette player for desktop and mobile browsers. No accounts, backend or external music service required. The application is **MIT licensed**; demo music is **creator-supplied**, and mechanical recordings retain **CC0 1.0**.
 
 [Play the demo](https://neo-cassette-tape-player-demo.yomiplush.dev/) · [Creator](https://www.yomiplush.dev/) · [Support](https://github.com/sponsors/yomiplush)
 
@@ -128,30 +128,23 @@ The first interaction enables Web Audio. This is an expressive simulation of a f
 
 ## Music and licenses
 
-Application source: [MIT](LICENSE). Included audio retains its original **CC0 1.0** status rather than being relicensed under MIT.
+Application source: [MIT](LICENSE). Current demo music consists of six creator-supplied recordings, with **MobileAmbience** retained from their artist metadata. Music is separate from the code license; it is not designated CC0 or relicensed under MIT. See [the music notice](public/licenses/DEMO-MUSIC.txt) before reusing these recordings.
 
-Demo music comes from [uncle-sheepsky/duru-ai-cc0-bgm](https://github.com/uncle-sheepsky/duru-ai-cc0-bgm), pinned to `c801be93348701ac65442769b1841e9ccba67c4e`. The upstream repository identifies all six selected tracks as original/pure code synthesis without external samples.
-
-| Tape | Side | Track file | Duration |
+| Tape | Original folder | Side A | Side B |
 | --- | --- | --- | --- |
-| AFTER HOURS | A | hyak-ep1-rhythm | 2:40 |
-| AFTER HOURS | B | hyak-ep3-suika | 2:40 |
-| OUTER SIGNAL | A | hyak-ep4-blackhole | 2:38 |
-| OUTER SIGNAL | B | hyak-ep6-galaxy | 2:40 |
-| SUNDAY RADIO | A | hyak-ep5-2048 | 2:40 |
-| SUNDAY RADIO | B | duru-ai-ep2-music | 2:00 |
+| SHRINE AFTERGLOW | Shrine Mix | Ethereal Sanctuary | Ethereal Sanctuary / Take 2 |
+| PILLOW RADIO | Cozy Mix | Lost Inari | Our Squishy Dreams |
+| MIDNIGHT CIRCUIT | Cool Mix | Corner Booth | Infosec |
 
-Tape names are original collection titles. Upstream documentation, license and generation code are preserved in `vendor/duru-ai/`. Served license copies are in `public/licenses/`; sources and SHA-256 hashes are in `public/audio/manifest.json`. The original 320 kbps tracks were converted to 128 kbps MP3, approximately 15 MB total. Tape effects are applied during playback.
+Each folder supplies one cassette with two complete tracks. English display labels are used in the player; original filenames and embedded source titles remain in `public/audio/manifest.json`, together with exact durations and input/output SHA-256 hashes. The supplied files have .mp3 names but contain M4A streams, so browser copies are encoded as actual 128 kbps MP3. Source files are never modified. No cassette effects are baked in; those remain part of playback.
 
-To reproduce the music conversion, install Git, Python and ffmpeg:
+To prepare playback copies from the same folder structure, install Python and ffmpeg:
 
 ```bash
-git clone https://github.com/uncle-sheepsky/duru-ai-cc0-bgm.git /tmp/duru-ai
-cd /tmp/duru-ai
-git checkout c801be93348701ac65442769b1841e9ccba67c4e
-# Return to this player repository:
-python scripts/prepare-audio.py /tmp/duru-ai
+python scripts/prepare-audio.py '/path/to/my vibes'
 ```
+
+The previous CC0 demo source and license are retained under `vendor/duru-ai/` as historical attribution; its recordings are no longer served.
 
 Mechanical recordings are by stecman, Joseph SARDIN / BigSoundBank and Spring Spring, all CC0. Source links and edits are in `public/sfx/credits.json`, license text in `public/licenses/SFX-CC0.txt`, and measurements/design rationale in [the sound research notes](docs/research/cassette-sound.md). No YouTube audio is redistributed.
 
@@ -239,3 +232,9 @@ Regenerate the lightweight material assets from the original SVGs with `node scr
 
 
 The cassette window and shell share a 1.62:1 aspect ratio, with a close-fitting pocket across viewport sizes. Manual FLIP and EJECT first lift the tape behind the glass, then bring it forward only after its lower edge clears the window. FLIP turns the tape in front of the deck, moves it back above the window, and lowers it behind the glass. Reduced motion changes the side immediately; resizing or cancelling the operation cleans up the temporary model. Auto-reverse changes direction internally without extracting the tape.
+
+
+The enclosure now uses fixed 400 × 500 logical geometry on every screen. Window size changes apply one uniform scene scale; the shell, window, controls and side depth never stretch or rearrange. The stationary TURN / FRONT toolbar keeps its native size. Very short landscape screens scale the physical buttons with the model (at least 24 CSS px in the tested phone sizes); normal portrait controls retain 44 px targets. Compact portrait layouts omit the optional liner strip to preserve the enclosure and controls.
+
+
+The current enclosure is an original NEO field stereo, with a navy front, a narrow smoked reel window, a brushed-metal transport spine, and five vertical mechanical keys. It includes no headphones or real manufacturer branding. Other NEO finishes and the two transport models remain selectable. A temporary opaque door surface masks the cassette outside the narrow aperture while it is lifted or seated; it moves in front only after fully clearing the door's upper lip.

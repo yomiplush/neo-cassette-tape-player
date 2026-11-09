@@ -1,51 +1,35 @@
 const base = import.meta.env.BASE_URL;
 export const demos = [
   {
-    id: "neon",
-    title: "AFTER HOURS",
-    subtitle: "The city sleeps. The tape keeps turning.",
-    color: "#d2683c",
-    number: "01",
-    genre: "ARCADE / ELECTRONIC",
+    id: "shrine-afterglow", title: "SHRINE AFTERGLOW",
+    subtitle: "Lantern light, long shadows, a quieter world.",
+    color: "#b97a52", number: "01", genre: "SHRINE / ATMOSPHERIC",
     sides: {
-      A: { title: "Rhythm", file: "hyak-ep1-rhythm", duration: 160 },
-      B: { title: "Suika", file: "hyak-ep3-suika", duration: 160 },
+      A: { title: "Ethereal Sanctuary", file: "shrine-ethereal-sanctuary", duration: 173.568 },
+      B: { title: "Ethereal Sanctuary / Take 2", file: "shrine-ethereal-sanctuary-take-2", duration: 171.797 },
     },
   },
   {
-    id: "orbit",
-    title: "OUTER SIGNAL",
-    subtitle: "Small signals from a distant orbit.",
-    color: "#547e76",
-    number: "02",
-    genre: "SPACE / SYNTH",
+    id: "pillow-radio", title: "PILLOW RADIO",
+    subtitle: "Soft corners for slow afternoons.",
+    color: "#b88b93", number: "02", genre: "COZY / DAYDREAM",
     sides: {
-      A: { title: "Blackhole", file: "hyak-ep4-blackhole", duration: 158 },
-      B: { title: "Galaxy", file: "hyak-ep6-galaxy", duration: 160 },
+      A: { title: "Lost Inari", file: "cozy-lost-inari", duration: 173.419 },
+      B: { title: "Our Squishy Dreams", file: "cozy-our-squishy-dreams", duration: 173.589 },
     },
   },
   {
-    id: "daylight",
-    title: "SUNDAY RADIO",
-    subtitle: "For an afternoon with nothing to do.",
-    color: "#bd9148",
-    number: "03",
-    genre: "CODE / GROOVE",
+    id: "midnight-circuit", title: "MIDNIGHT CIRCUIT",
+    subtitle: "Cool lights and a booth past midnight.",
+    color: "#648c99", number: "03", genre: "COOL / AFTER DARK",
     sides: {
-      A: { title: "2048", file: "hyak-ep5-2048", duration: 160 },
-      B: { title: "Music from Code", file: "duru-ai-ep2-music", duration: 120 },
+      A: { title: "Corner Booth", file: "cool-corner-booth", duration: 178.240 },
+      B: { title: "Infosec", file: "cool-infosec", duration: 168.085 },
     },
   },
 ].map((t) => ({
-  ...t,
-  author: "DURU-AI",
-  license: "CC0 1.0",
-  sides: Object.fromEntries(
-    Object.entries(t.sides).map(([s, v]) => [
-      s,
-      { ...v, url: `${base}audio/${v.file}.mp3` },
-    ]),
-  ),
+  ...t, author: "MobileAmbience", license: "Creator-supplied",
+  sides: Object.fromEntries(Object.entries(t.sides).map(([s,v]) => [s,{...v,url:`${base}audio/${v.file}.mp3`}]))
 }));
 export function readSettings() {
   try {

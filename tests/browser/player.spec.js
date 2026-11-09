@@ -32,7 +32,7 @@ test("switching tabs during a requested audio load preserves playback", async ({
 }) => {
   let release;
   const gate = new Promise((r) => (release = r));
-  await page.route("**/audio/hyak-ep1-rhythm.mp3", async (route) => {
+  await page.route("**/audio/shrine-ethereal-sanctuary.mp3", async (route) => {
     await gate;
     await route.continue();
   });
@@ -62,7 +62,7 @@ test("STOP cancels a pending request and permits another tape immediately", asyn
 }) => {
   let release;
   const gate = new Promise((r) => (release = r));
-  await page.route("**/audio/hyak-ep1-rhythm.mp3", async (route) => {
+  await page.route("**/audio/shrine-ethereal-sanctuary.mp3", async (route) => {
     await gate;
     await route.continue().catch(() => {});
   });
@@ -79,7 +79,7 @@ test("STOP cancels a pending request and permits another tape immediately", asyn
   await expect(page.locator("#status")).toHaveText("READY");
   await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").nth(1).click();
-  await expect(page.locator("#current-title")).toHaveText("OUTER SIGNAL");
+  await expect(page.locator("#current-title")).toHaveText("PILLOW RADIO");
   release();
 });
 test("keyboard S cancels loading even while the play button has focus", async ({
@@ -87,7 +87,7 @@ test("keyboard S cancels loading even while the play button has focus", async ({
 }) => {
   let release;
   const gate = new Promise((r) => (release = r));
-  await page.route("**/audio/hyak-ep1-rhythm.mp3", async (route) => {
+  await page.route("**/audio/shrine-ethereal-sanctuary.mp3", async (route) => {
     await gate;
     await route.continue().catch(() => {});
   });
@@ -104,7 +104,7 @@ test("keyboard S cancels loading even while the play button has focus", async ({
 test("stalled audio times out with an actionable error", async ({ page }) => {
   let release;
   const gate = new Promise((r) => (release = r));
-  await page.route("**/audio/hyak-ep1-rhythm.mp3", async (route) => {
+  await page.route("**/audio/shrine-ethereal-sanctuary.mp3", async (route) => {
     await gate;
     await route.continue().catch(() => {});
   });
@@ -231,8 +231,10 @@ test('demo fits one viewport with reachable controls in portrait and landscape',
       expect(b.bottom, `${width}x${height} ${b.label}`).toBeLessThanOrEqual(height+1);
       expect(b.height).toBeGreaterThan(0);
       if (["Play", "Pause", "Stop", "Rewind", "Fast forward", "Open or close door", "Flip side A/B", "Eject tape"].includes(b.label)) {
-        expect(b.height).toBeGreaterThanOrEqual(44);
-        expect(b.width).toBeGreaterThanOrEqual(44);
+        // A short landscape view scales the complete physical model uniformly.
+        const target = width > height && height <= 500 ? 24 : 44;
+        expect(b.height).toBeGreaterThanOrEqual(target);
+        expect(b.width).toBeGreaterThanOrEqual(target);
       }
     }
     const tape = await page.locator('#loaded-tape .cassette').boundingBox();

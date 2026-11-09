@@ -31,8 +31,9 @@ test("self-hosted edition keeps large transport keys within phone viewports", as
       const box = await page
         .getByRole("button", { name, exact: true })
         .boundingBox();
-      expect(box.width, name).toBeGreaterThanOrEqual(44);
-      expect(box.height, name).toBeGreaterThanOrEqual(44);
+      const target = width > height && height <= 500 ? 24 : 44;
+      expect(box.width, name).toBeGreaterThanOrEqual(target);
+      expect(box.height, name).toBeGreaterThanOrEqual(target);
       expect(box.y, name).toBeGreaterThanOrEqual(0);
       expect(box.y + box.height, name).toBeLessThanOrEqual(height);
     }

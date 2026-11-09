@@ -2228,3 +2228,74 @@ dialog::backdrop {
 .flip-face {backface-visibility:visible;-webkit-backface-visibility:visible}
 /* An extracted tape passes in front of the stationary inspection toolbar. */
 .case-object:has(.tape-servicing) {z-index:11}
+
+/* Immutable 400 x 500 case: responsive layout changes the camera, never the hardware. */
+.device-slot > .device-area.fixed-geometry {width:400px;height:500px;max-width:none;max-height:none;padding:0;top:calc(50% + 26px);left:50%;transform-origin:center;perspective:1600px;z-index:1}
+.device-area.fixed-geometry .player {display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:24px 34px minmax(0,1fr) 30px 66px 8px 74px;gap:4px;padding:8px 12px;border-radius:12px}
+.device-area.fixed-geometry .player > .device-brand {display:flex;grid-column:1;grid-row:1;margin:0;padding:0;align-items:center}
+.device-area.fixed-geometry .player > .case-topline {grid-column:1;grid-row:2;font-size:6px;margin:0}
+.device-area.fixed-geometry .player > .door-surround {grid-column:1;grid-row:3;height:100%;width:100%;align-self:center}
+.device-area.fixed-geometry .player > .readout {grid-column:1;grid-row:4;padding:0;gap:12px;align-items:center}
+.device-area.fixed-geometry .player > .case-controls {grid-column:1;grid-row:5;margin:0;padding:0;gap:5px}
+.device-area.fixed-geometry .player > .transport-labels {grid-column:1;grid-row:6;margin:0;font-size:6px;align-items:center}
+.device-area.fixed-geometry .player > .transport {grid-column:1;grid-row:7;height:74px;max-height:none;align-self:stretch;padding:2px 2px 6px;gap:3px}
+.device-area.fixed-geometry .case-controls button {height:66px;min-height:66px}
+.device-area.fixed-geometry .case-controls button span {font-size:7px}
+.device-area.fixed-geometry .transport button,.device-area.fixed-geometry .transport button.pressed {min-height:66px;font-size:17px}
+.device-area.fixed-geometry .neo-logo {font-size:25px}
+.device-area.fixed-geometry .model-number {font-size:16px}
+.device-area.fixed-geometry .case-shelf {min-height:32px;font-size:7px}
+.device-area.fixed-geometry #counter {font-size:17px;letter-spacing:4px}
+.device-area.fixed-geometry .counter-line {gap:5px}
+.device-area.fixed-geometry .signal-label {font-size:6px;letter-spacing:.6px}
+.device-area.fixed-geometry .vu-meter {gap:2px}
+.device-area.fixed-geometry .window-top {font-size:5px}
+.device-area.fixed-geometry .case-screw {width:5px;height:5px}
+.device-slot > .case-view-controls {position:absolute;inset:auto;margin:0;height:44px;z-index:2}
+.device-slot:has(.tape-servicing) > .device-area {z-index:3}
+@media(max-width:760px) and (orientation:portrait) and (max-height:600px) {
+  :is([data-edition="demo"],[data-edition="selfhost"]) #app {grid-template-rows:44px minmax(0,1fr) 24px}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .listening-space {grid-template-rows:minmax(0,1fr)}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .liner {display:none}
+}
+
+/* NEO field stereo: an original pocket enclosure with a metal transport spine. */
+.device-area.fixed-geometry[data-skin="harbor"] {--case-top:#344f6e;--case-mid:#1f3653;--case-base:#11263d;--case-edge:#a3b1b4;--case-ink:#dddac4;--case-accent:#d38c55}
+.device-area.fixed-geometry .player {grid-template-columns:minmax(0,1fr) 66px;grid-template-rows:32px 66px minmax(0,1fr) 66px 66px;gap:6px 8px;padding:16px;border-radius:5px;border:2px solid #a4b0ac;background:linear-gradient(0deg,#b9bdb4 0 8px,transparent 8px),linear-gradient(90deg,var(--case-top),var(--case-mid) calc(100% - 85px),#9ba7a5 calc(100% - 84px),#d3d4c8 calc(100% - 78px),#8d9b9b);box-shadow:inset 3px 2px 0 #e1e3d46b,inset -3px -3px 0 #1529368c,0 12px 22px #1c302433}
+.device-area.fixed-geometry .player > .device-brand {grid-column:1/-1;grid-row:1;border-bottom:1px solid #bcc6bd33;padding-bottom:6px}
+.device-area.fixed-geometry .neo-logo {font-size:25px;letter-spacing:-1px}
+.device-area.fixed-geometry .model-number {font-size:13px;color:#293e47;letter-spacing:1px}
+.device-area.fixed-geometry .player > .case-topline {grid-column:1;grid-row:2;align-items:center;gap:8px}
+.device-area.fixed-geometry .case-shelf {min-height:66px;height:66px;padding:8px 12px;border-color:#93a59c55;background:#172c42;font-size:9px;letter-spacing:1px}
+.device-area.fixed-geometry #door-state {max-width:65px;font-size:7px;line-height:1.8;text-align:right}
+.device-area.fixed-geometry .player > .door-surround {grid-column:1;grid-row:3;container-type:size}
+.device-area.fixed-geometry .door {height:100%;width:100%;max-height:none;padding:30px 12px 28px;border-radius:3px;justify-content:center;gap:6px;background:linear-gradient(120deg,var(--case-top),var(--case-mid) 65%,var(--case-base));border:1px solid #081a2a;box-shadow:inset 1px 1px #b2c0b33b,inset -1px -1px #081627,1px 2px 0 #a6b3a440}
+.device-area.fixed-geometry .door:before {content:'FIELD STEREO / NEO';position:absolute;top:12px;left:14px;color:var(--case-ink);font:7px monospace;letter-spacing:1.7px;opacity:.7}
+.device-area.fixed-geometry .deck-window {width:100%;aspect-ratio:3.3;border:4px solid #101820;border-radius:3px;flex:none;background:linear-gradient(120deg,#101b23,#20332e 65%,#0c1921);overflow:hidden;container-type:inline-size}
+.device-area.fixed-geometry #loaded-tape {width:94%;top:-18px}
+.device-area.fixed-geometry .window-top {margin:0;font-size:5px;letter-spacing:.7px}
+.device-area.fixed-geometry .door-bottom {margin:0;font-size:5px}
+.device-area.fixed-geometry .door-edge {height:3px;margin:0;left:8px;right:8px;background:#102333}
+.device-area.fixed-geometry .empty-deck > span {font-size:38px;letter-spacing:15px;line-height:1}
+.device-area.fixed-geometry .empty-deck small {display:none}
+.device-area.fixed-geometry .player > .readout {grid-column:1;grid-row:4;gap:8px;background:#142b3c80;padding:0 6px;border-top:1px solid #9eaaa04d;border-bottom:1px solid #091b2d}
+.device-area.fixed-geometry .counter-line {gap:6px}
+.device-area.fixed-geometry #reset-counter {width:66px;height:66px;min-height:66px;font-size:8px;padding:4px;background:#20394a}
+.device-area.fixed-geometry #counter {font-size:21px;letter-spacing:3px}
+.device-area.fixed-geometry .signal-wrap {min-width:0}
+.device-area.fixed-geometry .signal-label {font-size:7px;letter-spacing:.5px}
+.device-area.fixed-geometry .player > .case-controls {grid-column:1;grid-row:5;gap:5px}
+.device-area.fixed-geometry .case-controls button {background:linear-gradient(#b7bfb2,#88988e);border-color:#5a706f;border-radius:2px;box-shadow:inset 1px 1px #ecedd880,0 3px 0 #102a38}
+.device-area.fixed-geometry .case-controls button span {font-size:6px}
+.device-area.fixed-geometry .player > .transport-labels {display:none}
+.device-area.fixed-geometry .player > .transport {grid-column:2;grid-row:2/6;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(5,minmax(0,1fr));height:auto;max-height:none;padding:4px 0 8px;gap:5px;border:0;border-radius:2px;background:linear-gradient(90deg,#738887,#d1d4c8 12%,#a3b0a7 78%,#728784);box-shadow:inset 1px 2px 4px #142c3b80}
+.device-area.fixed-geometry .transport button,.device-area.fixed-geometry .transport button.pressed {min-width:0;min-height:66px;margin:0;border-radius:2px;background:repeating-linear-gradient(0deg,#ffffff08 0 1px,transparent 1px 3px),linear-gradient(90deg,#b0baae,#e0deca 25%,#a6b4a7);box-shadow:inset 1px 1px #faf0d475,inset -2px -1px #62786e60,0 4px 0 #465c5e}
+.device-area.fixed-geometry .transport button.play-key {background:linear-gradient(90deg,#b36c36,#dba259 30%,#bf7e3f);border-color:#9c7549}
+.device-area.fixed-geometry .transport button:active:not(:disabled) {transform:translate3d(0,3px,-2px);box-shadow:inset 0 2px 4px #10282d66,0 1px 0 #102c32}
+.device-area.fixed-geometry .case-side-left,.device-area.fixed-geometry .case-side-right {background:repeating-linear-gradient(0deg,#ffffff08 0 1px,transparent 1px 3px),linear-gradient(90deg,#64777a,#c3c7bd 18%,#9eaeaa 50%,#d6d9ca 80%,#6a8282);color:#314c51}
+.device-area.fixed-geometry .case-side-top,.device-area.fixed-geometry .case-side-bottom {background:linear-gradient(0deg,#657b7e,#c1c8bf 30%,#8d9e9b 80%,#4c666e);color:#293f49}
+.device-area.fixed-geometry .case-back {border-radius:5px}
+.device-area.fixed-geometry[data-model="auto"] .door {background:linear-gradient(120deg,var(--case-top),var(--case-mid) 65%,var(--case-base));border-color:#879c8d}
+.device-area.fixed-geometry .deck-window {grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+
+.device-area.fixed-geometry .door.door-occluder {position:absolute;transform:none!important;max-height:none;z-index:9;pointer-events:none}

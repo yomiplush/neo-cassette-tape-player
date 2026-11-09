@@ -1,0 +1,15 @@
+MY VIBES / CREATOR-SUPPLIED DEMO MUSIC
+
+Artist metadata: MobileAmbience.
+Provided by the project owner from Shrine Mix, Cozy Mix and Cool Mix.
+The six recordings are included at the project owner's direction.
+
+No explicit reuse license accompanied the supplied recordings. This notice
+therefore does not designate them CC0, place them under MIT, or grant further
+redistribution rights. Application source code remains MIT; these audio assets
+are separate. Contact the rights holder for permission to reuse the music.
+
+The source folders, source filenames, original embedded titles, source SHA-256
+hashes, output hashes and measured durations are recorded in audio/manifest.json.
+Only playback copies were converted to real 128 kbps MP3. Original files were
+not modified. Tape titles and shortened display titles are collection labels.

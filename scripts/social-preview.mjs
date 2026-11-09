@@ -6,14 +6,15 @@ await page.getByRole('button',{name:'Open tape collection'}).click();
 await page.locator('.load-tape').first().click();
 await page.waitForTimeout(4700);
 await page.evaluate(() => {
- const player = document.querySelector('#player');
+ // A clone has no live viewport observer, so exporting cannot shrink the model.
+ const device = document.querySelector('.device-area').cloneNode(true);
  document.body.replaceChildren();
  document.body.style.cssText='margin:0;width:1200px;height:630px;overflow:hidden;background:#e9e1cb;color:#294b43;position:relative;';
  const copy=document.createElement('div');
  copy.style.cssText='position:absolute;left:60px;top:105px;width:420px;font-family:sans-serif;';
- copy.innerHTML='<div style="font-size:18px;letter-spacing:5px;font-weight:700">NEO CASSETTE / NC-85</div><div style="font-size:60px;line-height:1.4;font-weight:900;margin-top:32px">Back to<br>the sound.</div><div style="font-size:19px;line-height:1.9;margin-top:28px">Press play. Flip the tape.<br>Keep the hiss. Feel the wobble.</div><div style="font-size:12px;margin-top:32px;letter-spacing:1px">neo-cassette-tape-player-demo.yomiplush.dev</div>';
- player.style.cssText='position:absolute;top:55px;left:540px;width:570px;transform:rotate(4deg);margin:0;';
- document.body.append(copy,player);
+ copy.innerHTML='<div style="font-size:18px;letter-spacing:5px;font-weight:700">NEO FIELD STEREO / NC-85</div><div style="font-size:60px;line-height:1.4;font-weight:900;margin-top:32px">Back to<br>the sound.</div><div style="font-size:19px;line-height:1.9;margin-top:28px">Press play. Flip the tape.<br>Keep the hiss. Feel the wobble.</div><div style="font-size:12px;margin-top:32px;letter-spacing:1px">neo-cassette-tape-player-demo.yomiplush.dev</div>';
+ device.style.cssText='position:absolute;top:64px;left:650px;width:400px;height:500px;max-width:none;max-height:none;padding:0;transform:rotate(4deg);margin:0;';
+ document.body.append(copy,device);
 });
 await page.screenshot({path:'public/social/neo-cassette.png'});
 await browser.close();

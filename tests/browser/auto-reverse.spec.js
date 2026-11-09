@@ -48,7 +48,7 @@ test('STOP cancels the auto-reverse transition without starting the other side',
 test('changing hardware cancels pending audio instead of restarting under the new model',async({page})=>{
   let release;
   const gate=new Promise(resolve=>release=resolve);
-  await page.route('**/audio/hyak-ep1-rhythm.mp3',async route=>{await gate;await route.continue().catch(()=>{});});
+  await page.route('**/audio/shrine-ethereal-sanctuary.mp3',async route=>{await gate;await route.continue().catch(()=>{});});
   try {
     await page.goto('/');await page.getByRole('button',{name:'Open tape collection'}).click();await page.locator('.load-tape').first().click();await expect(page.locator('#status')).toHaveText('READY');
     await page.getByRole('button',{name:'Play',exact:true}).click();await expect(page.locator('#status')).toHaveText('LOADING…');
