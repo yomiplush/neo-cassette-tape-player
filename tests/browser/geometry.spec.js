@@ -46,6 +46,8 @@ test('resizing preserves the complete case geometry instead of stretching or rea
     for(const [width,height] of [[1920,922],[930,890],[1280,720],[390,844],[320,480],[844,390]]){
       await page.setViewportSize({width,height});
       await page.waitForTimeout(180);
+      const collection=await page.getByRole('button',{name:'Open tape collection'}).boundingBox();
+      expect(collection.x).toBeGreaterThanOrEqual(0);expect(collection.x+collection.width).toBeLessThanOrEqual(width);
       const dimensions=await page.evaluate(()=>{
         const caseBox=document.querySelector('#player').getBoundingClientRect();
         const components=[...document.querySelectorAll('.door:not(.door-occluder),.deck-window,.case-controls,.transport')].map(e=>{const b=e.getBoundingClientRect();return [b.width/caseBox.width,b.height/caseBox.height,(b.left-caseBox.left)/caseBox.width,(b.top-caseBox.top)/caseBox.height];});

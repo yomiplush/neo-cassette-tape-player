@@ -106,17 +106,21 @@ for (const side of ['A', 'B']) {
   });
 }
 for (const start of ['A','B']) {
-  test(`auto-reverse starting at ${start} plays the other side once, then stops`,()=>{
+  test(`auto-reverse starting at ${start} loops both sides until STOP`,()=>{
     const t=new TapeTransport({test:{side:start,A:0,B:0}});
     t.setModel('auto');t.door();t.insert(tape);t.door();t.play();
-    t.tick(t.duration);
-    assert.equal(t.reversePending,true);
-    assert.equal(t.reverseAtEnd(),true);
-    assert.equal(t.side,start==='A'?'B':'A');
-    assert.equal(t.position,0);
-    assert.equal(t.open,false);
-    t.play({continueCycle:true});t.tick(t.duration);
-    assert.equal(t.mode,'stopped');assert.equal(t.reversePending,false);
+    for(let cycle=0;cycle<6;cycle++){
+      const previous=t.side;
+      t.tick(t.duration);
+      assert.equal(t.reversePending,true);
+      assert.equal(t.reverseAtEnd(),true);
+      assert.notEqual(t.side,previous);
+      assert.equal(t.position,0);
+      assert.equal(t.open,false);
+      assert.equal(t.play({continueCycle:true}),true);
+    }
+    t.tick(t.duration);t.stop();
+    assert.equal(t.reversePending,false);
     assert.equal(t.reverseAtEnd(),false);
   });
 }

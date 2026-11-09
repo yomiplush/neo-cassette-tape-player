@@ -4,7 +4,7 @@
 
 The user's [BCN article dated April 29, 2018](https://www.bcnretail.com/market/detail/20180429_59290.html) contrasts manual cassette removal/turning with auto-reverse transport and discusses the loss of contemporary supply for those mechanisms at that time. It is a historical design reference, not evidence about today's market. No article images, manufacturer logos, enclosure geometry or text excerpts are distributed.
 
-NEO NC-85 and NR-88 remain original fictional models. NR-88 models closed-door direction/head switching, not a tape physically flipping inside the chassis. One reversal per user play cycle is an explicit interface decision; it is not presented as the behavior of every historical deck. Its 48–88px case depth versus the manual model's 50–96px is an illustrative CSS dimension, not a measured hardware specification.
+NEO NC-85 and NR-88 remain original fictional models. NR-88 models closed-door direction/head switching, not a tape physically flipping inside the chassis. The current interface continuously alternates both sides from zero until STOP; this is an explicit interface decision, not a claim about every historical deck. Its 48–88px case depth versus the manual model's 50–96px is an illustrative CSS dimension, not a measured hardware specification.
 
 ## Browser rendering limits and choices
 

@@ -2389,3 +2389,93 @@ html[data-portable="true"] .device-area.fixed-geometry .case-controls button:act
 html[data-portable="true"] .device-area.fixed-geometry .transport button:active:not(:disabled) {transform:translateY(2px);box-shadow:inset 0 3px 4px #102b3b80}
 html[data-portable="true"] .device-area.fixed-geometry .transport button.pressed:active:not(:disabled) {transform:translateY(4px)}
 .device-area[data-tape-orientation="vertical"] .empty-deck > span {transform:rotate(90deg);white-space:nowrap}
+
+/* Larger native keys keep a 44px touch area even at the smallest portrait camera scale. */
+/* The collection belongs to the room; the enlarged pocket belongs to the deck. */
+.device-area.fixed-geometry .player {grid-template-columns:minmax(0,1fr) 82px;grid-template-rows:minmax(0,1fr) 66px 82px}
+.device-area.fixed-geometry .player > .device-brand {position:absolute;top:16px;right:16px;width:82px;padding:0;border:0;justify-content:center}
+.device-area.fixed-geometry .player > .door-surround {grid-row:1}
+.device-area.fixed-geometry .player > .readout {grid-row:2;background:color-mix(in srgb,var(--case-base) 75%,transparent)}
+.device-area.fixed-geometry .player > .case-controls {grid-row:3}
+.device-area.fixed-geometry .case-controls button {height:100%}
+.device-area.fixed-geometry .player > .transport {grid-row:1/4;padding-top:32px}
+.device-area.fixed-geometry .counter-wrap {width:132px;min-width:132px}
+.device-area.fixed-geometry .counter-line {justify-content:space-between}
+.device-area.fixed-geometry .neo-logo {color:var(--case-ink);font-size:25px}
+.device-area.fixed-geometry #counter {width:66px;min-width:66px;text-align:center}
+.device-area.fixed-geometry[data-tape-orientation="vertical"] .deck-window {width:112px;height:236px}
+.device-area.fixed-geometry[data-tape-orientation="vertical"] #loaded-tape,
+.device-area.fixed-geometry[data-tape-orientation="vertical"] #loaded-tape > .cassette {width:272px;height:168px}
+.device-area.fixed-geometry #door-state {max-width:none;font-size:5px}
+.collection-trigger {height:44px;min-height:44px;padding:0 12px;border:1px solid #5d716166;background:#e2dfca;color:#314c43;font:10px monospace;white-space:nowrap;letter-spacing:1px}
+.collection-trigger .count {margin-left:5px;border:1px solid #718475;padding:2px}
+
+/* Metadata remains stationary when the object turns, including on a phone. */
+.playback-summary {min-width:0}
+.playback-summary .track-info {display:flex;flex-direction:column;margin:10px 0;gap:5px}
+.playback-summary #track-name {font-size:23px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.playback-summary .side-row {position:static;display:flex;justify-content:space-between;gap:12px;margin:8px 0;font:12px monospace}
+.playback-summary .position-track {margin:8px 0}
+.portable-playback {display:none}
+@media(max-width:900px) and (orientation:portrait){
+  :is([data-edition="demo"],[data-edition="selfhost"]) .listening-space {grid-template-rows:minmax(0,1fr) 62px;gap:6px}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .liner {display:block;overflow:hidden;align-self:stretch}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .liner :is(.liner-heading,#track-category,#current-title,#current-subtitle,.tape-note) {display:none}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .liner .playback-summary .track-info {display:flex;margin:0}
+  .playback-summary #track-name {font-size:16px;line-height:22px}
+  .playback-summary #track-author {display:none}
+  .playback-summary .side-row {position:static;margin:3px 0;font-size:11px}
+  .playback-summary .position-track {margin:5px 0;height:2px}
+}
+
+/* Flat mode uses the same finish variables as the 3D material. */
+html[data-portable="true"] #app {grid-template-rows:52px minmax(0,1fr) 62px;background:#e2dfca}
+html[data-portable="true"] .device-area.fixed-geometry .player {grid-template-rows:minmax(0,1fr) 66px 72px;background-color:var(--case-base)}
+html[data-portable="true"] .device-area.fixed-geometry .door {background:color-mix(in srgb,var(--case-mid) 82%,transparent)}
+html[data-portable="true"] .device-area.fixed-geometry .readout {background:color-mix(in srgb,var(--case-base) 80%,transparent)}
+html[data-portable="true"] .device-area.fixed-geometry .transport {padding-top:32px}
+html[data-portable="true"] .device-area.fixed-geometry .player > .device-brand {width:66px}
+html[data-portable="true"] .device-area.fixed-geometry .deck-window {height:min(300px,calc(100cqh - 64px))}
+html[data-portable="true"] .device-slot > .case-view-controls {display:flex!important;position:fixed;top:0!important;left:78px;right:auto!important;height:52px;align-items:center;z-index:20}
+html[data-portable="true"] .case-view-controls :is(.case-grip,.case-home) {display:none}
+html[data-portable="true"] .collection-trigger {background:#d7d8c5;font-size:9px;padding:0 8px}
+html[data-portable="true"] .portable-playback {display:block;grid-row:3;padding:6px 16px;background:#e2dfca;color:#30483e;min-width:0}
+html[data-portable="true"] .portable-playback .track-info {display:flex;margin:0}
+html[data-portable="true"] .portable-playback #track-name {font-size:16px;line-height:22px}
+html[data-portable="true"] .portable-playback #track-author {display:none}
+html[data-portable="true"] .portable-playback .side-row {position:static;margin:3px 0;font-size:11px}
+html[data-portable="true"] .portable-playback .position-track {height:2px;margin:4px 0}
+@media(max-height:600px) and (orientation:portrait){
+  html[data-portable="true"] .device-area.fixed-geometry .player {grid-template-rows:minmax(0,1fr) 44px 56px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .device-brand {display:flex;top:8px;right:8px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .door-surround {grid-row:1}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .readout {grid-row:2}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .case-controls {grid-row:3}
+.device-area.fixed-geometry .case-controls button {height:100%}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .transport {grid-row:1/4}
+}
+@media(max-height:600px) and (orientation:landscape){
+  html[data-portable="true"] #app {grid-template-rows:44px minmax(0,1fr) 62px}
+  html[data-portable="true"] .device-slot > .case-view-controls {height:44px}
+  html[data-portable="true"] .device-area.fixed-geometry .player {grid-template-rows:minmax(0,1fr) 66px}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .door-surround {grid-row:1/3}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .readout {grid-row:1}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .case-controls {grid-row:2}
+  html[data-portable="true"] .device-area.fixed-geometry .player > .transport {grid-row:1/3;padding-top:24px}
+  html[data-portable="true"] .device-area.fixed-geometry .transport button {min-height:36px}
+}
+:is([data-edition="demo"],[data-edition="selfhost"]) .playback-summary .side-row {position:static;display:flex;justify-content:space-between;gap:12px;margin:6px 0;font:12px monospace}
+:is([data-edition="demo"],[data-edition="selfhost"]) .playback-summary .side-row b {font:inherit;padding:0;border:0;background:none}
+@media(max-width:900px) and (orientation:portrait){
+  :is([data-edition="demo"],[data-edition="selfhost"]) #liner-loaded {padding:0}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .playback-summary .side-row {margin:3px 0;font-size:11px}
+  :is([data-edition="demo"],[data-edition="selfhost"]) .playback-summary .position-track {display:block}
+}
+html[data-portable="true"] .portable-playback .playback-summary .side-row {margin:3px 0;font-size:11px}
+@media(max-height:600px) and (orientation:landscape){
+  html[data-portable="true"] .device-area.fixed-geometry .player > .transport {padding:26px 0 2px}
+  html[data-portable="true"] .device-area.fixed-geometry .transport button {min-height:44px}
+}
+@media(max-height:600px) and (orientation:portrait){
+  html[data-portable="true"] .device-area.fixed-geometry .transport button {min-height:44px}
+}

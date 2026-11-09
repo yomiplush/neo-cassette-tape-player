@@ -14,7 +14,7 @@ An original, weathered 1980s cassette player for desktop and mobile browsers. No
 - A dedicated tape collection with three cassettes and six distinct A/B tracks.
 - Play, pause, stop, 12x fast forward/rewind, door controls, eject and manual side switching.
 - Automatic safe sequences: FLIP stops playback, opens the door, turns a thick 3D-style cassette and closes the door. An already open door stays open. EJECT stops playback and opens the door before removing the tape.
-- Animated reels and tape packs, a mechanical-style counter, counter reset and automatic end stop.
+- Animated reels and tape packs, a mechanical-style counter and automatic end stop.
 - Tape hiss, wow/flutter, softened highs, saturation and irregular gentle dropouts. Tape character remains at minimum wear.
 - Edited CC0 recordings for winding, button presses, stopping and opening/closing the hatch, with a procedural fallback.
 - Master volume and tape wear controls. Position is remembered separately for each tape and side. Flipping from the end of either side starts the opposite side at zero.
@@ -109,7 +109,7 @@ docker build --build-arg PLAYER_EDITION=demo -t neo-cassette-demo .
 3. **◀◀ / ▶▶** winds continuously at 12x speed until stopped or at the end. Winding plays mechanical sound rather than music.
 4. **FLIP A / B** performs the complete safe side-switching sequence. Press play to resume.
 5. **EJECT TAPE** stops, opens and removes the cassette. Choose another from TAPE BOX.
-6. **RESET** changes the counter display only.
+6. The mechanical counter follows the tape. NEO and the counter sit below the enlarged cassette pocket; TAPE BOX is in the stationary UI.
 7. Choose **Make your own mixtape** to import audio: up to 30 MB and 10 minutes per side. Omitting side B uses side A on both sides. Eject an imported tape before deleting it with **×** in the collection.
 
 Keyboard: `Space` play/pause, `←` rewind, `→` fast forward, `S` stop, `E` door, `F` flip. Shortcuts are suppressed while using forms and dialogs.
@@ -206,7 +206,7 @@ Regenerate these previews against the development server with `node scripts/scre
 
 ## Manual or auto-reverse hardware
 
-**DECK** selects the original **NC-85 / Manual flip** or **NR-88 / Auto reverse**. The NR-88 has its own trim, model markings, head carriage and slightly different case depth. It switches track direction without opening the door or physically flipping the cassette. Each new play cycle permits one automatic reversal, then stops at the end of the second side. Starting on B gives B→A→stop. Pausing preserves that cycle; winding never triggers automatic reversal. STOP cancels a pending reversal. Changing hardware stops playback and cancels pending loads.
+**DECK** selects the original **NC-85 / Manual flip** or **NR-88 / Auto reverse**. The NR-88 has its own trim, model markings, head carriage and slightly different case depth. It switches track direction without opening the door or physically flipping the cassette. Playback continuously alternates A→B→A (or B→A→B), starting each side at zero, until STOP. Winding never triggers automatic reversal. STOP cancels a pending reversal. Changing hardware stops playback and cancels pending loads.
 
 The NR-88's **DIRECTION A / B** control follows the physical tape position when switching direction midway; automatic end reversal starts the opposite side at zero. Tape-pack graphics retain their physical orientation on B. The NC-85 keeps the existing manual FLIP and independent saved side positions.
 
@@ -248,8 +248,10 @@ The original shell material is baked into five small WebP images (about 14 KB co
 
 In 3D mode, dragging either the model or the blank room background rotates it. Buttons, links, sliders, the liner and dialogs retain their own interactions. Portable mode ignores rotation gestures.
 
-PLAY, REW and F.FWD keys latch visibly into the enclosure. Selecting another transport releases the previous key; PAUSE retains PLAY and latches the pause key, and STOP or the final end of the playback cycle releases them; auto-reverse keeps PLAY latched through its direction change. Accessible `aria-pressed` states follow the same mechanism. The same latching feel is rendered as a cheap 2D inset in portable mode.
+PLAY, REW and F.FWD keys latch visibly into the enclosure. Selecting another transport releases the previous key; PAUSE retains PLAY and latches the pause key, and STOP or the end of manual playback releases them; auto-reverse keeps PLAY latched through its direction change. Accessible `aria-pressed` states follow the same mechanism. The same latching feel is rendered as a cheap 2D inset in portable mode.
 
 To regenerate the material images from the original code-native enclosure, run the development server and `node scripts/prepare-portable.mjs`. Normal builds use the checked-in images and do not require ffmpeg or a screenshot pass.
 
 <img src="docs/screenshots/portable-mobile.png" alt="Screen-sized flat portable mode with a portrait cassette" width="220"> <img src="docs/screenshots/portable-landscape.png" alt="Portable mode in a phone landscape viewport" width="440">
+
+Portable mode follows **FINISH** immediately, after reload and when switching back from 3D. Both the bitmap shell and door/readout materials use the selected finish. Track title, A / B Side and elapsed / total time stay in a stationary summary, including while viewing the back and in the flat portable panel. The collection button stays outside the enclosure; RESET has been removed.

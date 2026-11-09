@@ -18,7 +18,7 @@ async function prepare(page){
   await page.locator('.import-submit').click();await page.locator('.load-tape').last().click();
   await expect(page.locator('#status')).toHaveText('READY');
 }
-test('auto-reverse keeps the door shut, plays the other side from zero and stops after two sides',async({page})=>{
+test('auto-reverse keeps the door shut, plays the other side from zero and loops both sides until STOP',async({page})=>{
   await prepare(page);
   await expect(page.locator('.model-number')).toContainText('NR-88');
   await page.getByRole('button',{name:'Play',exact:true}).click();
@@ -31,8 +31,12 @@ test('auto-reverse keeps the door shut, plays the other side from zero and stops
   await expect(page.locator('#track-time')).toContainText('00:00 /');
   const packs=await page.locator('#player').evaluate(el=>[parseFloat(el.style.getPropertyValue('--left-pack')),parseFloat(el.style.getPropertyValue('--right-pack'))]);
   expect(packs[0]).toBeLessThan(packs[1]);
-  await expect(page.locator('#status')).toHaveText('READY');
-  await page.waitForTimeout(700);
+  await expect(page.locator('#side-label')).toHaveText('A');
+  await expect(page.locator('#status')).toHaveText('PLAY');
+  await expect(page.locator('#side-label')).toHaveText('B');
+  await expect(page.locator('#status')).toHaveText('PLAY');
+  await page.getByRole('button',{name:'Stop',exact:true}).click();
+  await page.waitForTimeout(2200);
   await expect(page.locator('#side-label')).toHaveText('B');
   await expect(page.locator('#status')).toHaveText('READY');
 });

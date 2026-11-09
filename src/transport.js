@@ -8,7 +8,6 @@ export class TapeTransport {
     this.mode = "stopped";
     this.model = "manual";
     this.reversePending = false;
-    this.reversalsRemaining = 0;
   }
   get duration() {
     return this.tape?.sides[this.side]?.duration || 0;
@@ -50,18 +49,16 @@ export class TapeTransport {
   setModel(model) {
     this.model = model === "auto" ? "auto" : "manual";
     this.reversePending = false;
-    this.reversalsRemaining = 0;
   }
-  play({continueCycle = false} = {}) {
+  play() {
     if (!this.tape || this.open || this.position >= this.duration) return false;
-    if (!continueCycle) this.reversalsRemaining = this.model === "auto" ? 1 : 0;
     this.reversePending = false;
     this.mode = "playing";
     return true;
   }
   pause() {
     if (this.mode === "playing") this.mode = "paused";
-    else if (this.mode === "paused") this.play({continueCycle:true});
+    else if (this.mode === "paused") this.play();
   }
   stop() {
     this.reversePending = false;
@@ -88,10 +85,10 @@ export class TapeTransport {
   }
   finishPlayback() {
     if (this.mode !== "playing") return false;
-    const reverse = this.model === "auto" && this.reversalsRemaining > 0;
+    const reverse = this.model === "auto";
     this.position = this.duration;
     this.stop();
-    if (reverse) {this.reversalsRemaining--;this.reversePending = true;}
+    if (reverse) this.reversePending = true;
     return true;
   }
   reverseAtEnd() {

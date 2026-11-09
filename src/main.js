@@ -72,10 +72,10 @@ $("#app").innerHTML = `
  <div class="device-area"><div class="device-top"><span>PHONES <span class="jack">●</span></span><div class="top-ridges"></div><span>DC 3V <b>⊖</b></span></div>
  <div class="player" id="player">
   <i class="case-screw tl"></i><i class="case-screw tr"></i><i class="case-screw bl"></i><i class="case-screw br"></i>
-  <div class="device-brand"><div class="neo-logo">NEO<span>PORTABLE CASSETTE PLAYER</span></div><div class="model-number">NC-85<span>STEREO</span></div></div>
-  <div class="case-topline"><button class="shelf-trigger case-shelf" aria-label="Open tape collection">TAPE BOX <span class="count">03</span></button><span id="door-state">DOOR LATCHED</span></div>
-  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="Toggle cassette window" title="Press the window to open or close"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><i class="head-carriage" aria-hidden="true"></i><span>OPEN</span></div></div><div class="door-edge"></div></div>
-  <div class="readout"><div class="counter-wrap"><span class="micro-label">TAPE COUNTER</span><div class="counter-line"><output id="counter">000</output><button id="reset-counter" aria-label="Reset counter">RESET</button></div></div><div class="signal-wrap"><div class="signal-label"><span class="led" id="led"></span><span id="status" role="status">NO TAPE</span></div><div class="vu-meter" aria-label="Audio level">${"<i></i>".repeat(12)}</div><div class="vu-scale"><span>−20</span><span>−10</span><span>0</span><span>+3</span></div></div></div>
+  <div class="device-brand"><div class="model-number">NC-85<span>STEREO</span></div></div>
+
+  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="Toggle cassette window" title="Press the window to open or close"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><i class="head-carriage" aria-hidden="true"></i><span id="door-state">DOOR LATCHED</span></div></div><div class="door-edge"></div></div>
+  <div class="readout"><div class="counter-wrap"><span class="micro-label">TAPE COUNTER</span><div class="counter-line"><div class="neo-logo">NEO</div><output id="counter">000</output></div></div><div class="signal-wrap"><div class="signal-label"><span class="led" id="led"></span><span id="status" role="status">NO TAPE</span></div><div class="vu-meter" aria-label="Audio level">${"<i></i>".repeat(12)}</div><div class="vu-scale"><span>−20</span><span>−10</span><span>0</span><span>+3</span></div></div></div>
  <div class="deck-actions case-controls"><button data-action="door" aria-label="Open or close door">${icon("door")} <span>OPEN / CLOSE</span></button><button data-action="flip" aria-label="Flip side A/B">${icon("flip")} <span>FLIP A / B</span></button><button data-action="eject" aria-label="Eject tape">${icon("eject")} <span>EJECT TAPE</span></button></div>
   <div class="transport-labels"><span>REW</span><span>F.FWD</span><span>STOP</span><span>PLAY</span><span>PAUSE</span></div>
   <div class="transport"><button data-action="rewind" aria-label="Rewind">${icon("rewind")}</button><button data-action="forward" aria-label="Fast forward">${icon("forward")}</button><button data-action="stop" aria-label="Stop">${icon("stop")}</button><button data-action="play" class="play-key" aria-label="Play">${icon("play")}</button><button data-action="pause" aria-label="Pause">${icon("pause")}</button></div>
@@ -83,14 +83,14 @@ $("#app").innerHTML = `
  </div><div class="device-bottom"><span>HIGH FIDELITY? &nbsp; NOT QUITE.</span><div class="bottom-ridges"></div></div><div class="device-shadow"></div>
 
  </div>
- <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">${icon("cassette")}</span><h2>What is on your tape?</h2><p>Pick one from the collection.<br>Find a sound for your state of mind.</p><button class="shelf-trigger primary">Choose a tape <span>${icon("arrow")}</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="side-row"><span>SIDE <b id="side-label">A</b></span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><p class="tape-note">Rewind instead of skipping.<br>Open the door and flip to the other side.</p></div>
+ <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">${icon("cassette")}</span><h2>What is on your tape?</h2><p>Pick one from the collection.<br>Find a sound for your state of mind.</p><button class="shelf-trigger primary">Choose a tape <span>${icon("arrow")}</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="playback-summary"><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><div class="side-row"><span><b id="side-label">A</b> Side</span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div></div><p class="tape-note">Rewind instead of skipping.<br>Open the door and flip to the other side.</p></div>
  <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div><div class="case-options"><label for="case-skin">FINISH<select id="case-skin">${skins.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select></label><label for="tape-character">TONE<select id="tape-character"><option value="archive">Original archive</option><option value="light">Light / Home dub</option><option value="medium">Medium / Street copy</option><option value="heavy">Heavy / Attic find</option></select></label><label for="deck-model">DECK<select id="deck-model"><option value="manual">NC-85 / Manual flip</option><option value="auto">NR-88 / Auto reverse</option></select></label><label for="render-quality">DISPLAY<select id="render-quality"><option value="auto">Auto / Adaptive</option><option value="low">Economy / 50%</option><option value="medium">Balanced / 75%</option><option value="high">Full detail / 100%</option></select></label></div></div>
  </aside></section>
  <section class="bottom-note"><span>01 — PUT THE WORLD ON PAUSE.</span><p>Even the rewinding becomes part of the music.</p><span>DESIGNED FOR SLOW LISTENING.</span></section>
 </main><footer class="site-footer"><span>NEO CASSETTE <span>— A SMALL TRIP BACK.</span></span><button id="credits-open">CREDITS & LICENSES</button></footer>
 <dialog id="library-dialog" aria-labelledby="library-heading"><div class="dialog-header"><div><div class="eyebrow">THE COLLECTION</div><h2 id="library-heading">Your tape collection<span id="tape-total">03 TAPES</span></h2></div><button class="close-dialog" aria-label="Close tape collection">${icon("close")}</button></div><p class="dialog-intro">Pick a tape for today’s soundtrack.</p><div id="tape-grid" class="tape-grid"></div><button id="import-open" class="import-button"><b>${icon("plus")}</b><span>Make your own mixtape<small>Create sides A / B from audio files</small></span><span>${icon("arrow")}</span></button><p class="library-note">MY VIBES COLLECTION · 3 TAPES / 6 TRACKS · MOBILEAMBIENCE<br>Imported audio stays in this browser.</p></dialog>
 <dialog id="import-dialog" aria-labelledby="import-heading"><form id="import-form"><div class="dialog-header"><div><div class="eyebrow">MAKE A MIXTAPE</div><h2 id="import-heading">Give your music a home.</h2></div><button type="button" class="close-dialog" aria-label="Close import dialog">${icon("close")}</button></div><p class="dialog-intro">One track per side. Turn your audio into a mixtape.</p><label class="form-label">Tape name<input name="title" maxlength="40" placeholder="Example: The way home" required></label><label class="form-label file-label">SIDE A <span>Required</span><input name="sideA" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" required></label><label class="form-label file-label">SIDE B <span>Optional; uses side A when omitted</span><input name="sideB" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"></label><p class="form-hint">Up to 30 MB and 10 minutes per side. Use MP3, WAV, M4A or another browser-supported format. Files are never uploaded.</p><button class="primary import-submit" type="submit">Create tape <span>${icon("arrow")}</span></button><p id="import-status" role="status"></p></form></dialog>
-<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">Enjoy the ritual.</h2></div><button class="close-dialog" aria-label="Close instructions">${icon("close")}</button></div><div class="manual"><p><b>01 / Choose a tape</b>Choose a tape from the collection. The deck stops, opens and loads it automatically.</p><p><b>02 / Press a button</b>PLAY starts playback, PAUSE pauses, REW / F.FWD winds at 12x speed, and STOP stops. The deck clicks to a stop at the end.</p><p><b>03 / Flip the tape</b>Press FLIP to stop, open, turn the tape and close the door. An already open door stays open. Each side remembers its position. Flipping from the end starts the other side at zero. RESET changes only the counter.</p><p><b>04 / Turn it in your hands</b>Drag the case or its turn handle to inspect the sides and back. FRONT brings it home. On the handle, arrow keys rotate and Home returns to the front.</p><p><b>05 / Set the wear</b>Hiss, wow and flutter, softened highs, saturation and gentle dropouts remain part of the sound even at minimum wear.</p><p>Keyboard: Space plays/pauses, arrows wind, S stops, E opens/closes, F flips. Your first interaction enables audio. Music continues when switching tabs. Closing or navigating away from this page stops playback.</p><p class="form-hint">Choose CASE FINISH and TAPE CHARACTER for a different look and feel. Phone/tablet portrait settings live behind the gear button. An original fictional deck simulation; recording is not included.</p></div></dialog>
+<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">Enjoy the ritual.</h2></div><button class="close-dialog" aria-label="Close instructions">${icon("close")}</button></div><div class="manual"><p><b>01 / Choose a tape</b>Choose a tape from the collection. The deck stops, opens and loads it automatically.</p><p><b>02 / Press a button</b>PLAY starts playback, PAUSE pauses, REW / F.FWD winds at 12x speed, and STOP stops. The deck clicks to a stop at the end.</p><p><b>03 / Flip the tape</b>Press FLIP to stop, open, turn the tape and close the door. An already open door stays open. Each side remembers its position. NR-88 auto-reverse repeats A / B until STOP. Flipping from the end starts the other side at zero.</p><p><b>04 / Turn it in your hands</b>Drag the case or its turn handle to inspect the sides and back. FRONT brings it home. On the handle, arrow keys rotate and Home returns to the front.</p><p><b>05 / Set the wear</b>Hiss, wow and flutter, softened highs, saturation and gentle dropouts remain part of the sound even at minimum wear.</p><p>Keyboard: Space plays/pauses, arrows wind, S stops, E opens/closes, F flips. Your first interaction enables audio. Music continues when switching tabs. Closing or navigating away from this page stops playback.</p><p class="form-hint">Choose CASE FINISH and TAPE CHARACTER for a different look and feel. Phone/tablet portrait settings live behind the gear button. An original fictional deck simulation; recording is not included.</p></div></dialog>
 <dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="Close credits">${icon("close")}</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 is an original design. Reference photos, manufacturer logos and product images are not distributed.</p><p><b>MECHANISMS / CC0 1.0</b>Recordings by stecman, Joseph SARDIN / BigSoundBank and Spring Spring. Edited, filtered and looped. <a href="${import.meta.env.BASE_URL}sfx/credits.json" target="_blank" rel="noopener noreferrer">Sources and edits</a> · <a href="${import.meta.env.BASE_URL}licenses/SFX-CC0.txt" target="_blank" rel="noopener noreferrer">Full CC0 license</a></p><p><b>LEGACY TONE PROFILES / MIT</b>Light, Medium and Heavy tone targets adapted from YomiPlush’s <a href="https://github.com/yomiplush/youtube-cassette-filter" target="_blank" rel="noopener noreferrer">Cassette Filter</a>. <a href="${import.meta.env.BASE_URL}licenses/LEGACY-FILTER-MIT.txt" target="_blank" rel="noopener noreferrer">MIT notice</a>. No YouTube audio is included.</p><p><b>MUSIC / CREATOR-SUPPLIED</b>Six tracks supplied by the project owner from Shrine Mix, Cozy Mix and Cool Mix. Artist metadata: MobileAmbience. Prepared as browser-compatible 128 kbps MP3; source titles and hashes are preserved in the manifest.</p><p><a href="${import.meta.env.BASE_URL}audio/manifest.json" target="_blank" rel="noopener noreferrer">Track provenance</a> · <a href="${import.meta.env.BASE_URL}licenses/DEMO-MUSIC.txt" target="_blank" rel="noopener noreferrer">Music notice</a></p><p>The app code is MIT. These recordings are not designated CC0 or relicensed under MIT. Tape names are original collection titles. Imported music remains the property of its rights holders.</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub</a></p></div></dialog>
 <dialog id="settings-curtain" aria-labelledby="settings-heading" data-phase="closed"><div class="curtain-stitch" aria-hidden="true"></div><div class="curtain-content"><div class="eyebrow">NC-85 / A FEW PERSONAL TOUCHES</div><h2 id="settings-heading">Make yourself<br><em>at home.</em></h2><p class="curtain-intro">A little louder. A little more worn.<br>Find your kind of imperfect.</p><div class="curtain-controls"></div><button id="settings-close" aria-label="Back to the deck"><span>BACK TO THE DECK</span>${icon("arrow")}</button><p class="curtain-note">YOUR TAPE KEEPS TURNING.</p></div><div class="curtain-hem" aria-hidden="true"></div></dialog>
 <div class="mobile-dock-shade" aria-hidden="true"></div><div id="toast" role="status" aria-live="polite"></div>`;
@@ -120,18 +120,23 @@ setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"),
   deck.classList.add("fixed-geometry");deck.dataset.tapeOrientation="vertical";
   deck.before(slot); slot.append(deck);
   const view=deck.querySelector(".case-view-controls");slot.append(view);
+  view.insertAdjacentHTML("afterbegin",`<button class="shelf-trigger collection-trigger" aria-label="Open tape collection">TAPE BOX <span class="count">03</span></button>`);
   const fit = () => {
     const scale=Math.max(.1,Math.min(1.8,(slot.clientWidth-12)/400,(slot.clientHeight-64)/500));
     deck.style.transform=`translate(-50%, -50%) scale(${scale})`;
     view.style.top=`calc(50% - ${250*scale+26}px)`;
-    view.style.right=`calc(50% - ${200*scale}px)`;
+    const right=Math.min(Math.max(0,(slot.clientWidth-400*scale)/2),Math.max(0,slot.clientWidth-view.offsetWidth));
+    view.style.right=`${right}px`;
   };
   const observer = new ResizeObserver(fit);
   observer.observe(slot); fit();
 }
 
+const summary=$(".playback-summary"), summaryHome=summary.parentElement;
+const portableDock=document.createElement("div");portableDock.className="portable-playback";$("#app").append(portableDock);
 setupPortable({button:$("#portable-toggle"),preferred:portablePreference,isBusy:()=>busy || flipping,onChange:({active,preferred})=>{
   portableActive=active;portablePreference=preferred;
+  (active?portableDock:summaryHome).append(summary);
   caseModel.cancelGesture();display.setPortable(active);persist();render();
 }});
 
@@ -292,6 +297,7 @@ function render() {
         (!t || transport.open)) ||
       (["flip", "eject"].includes(a) && !t);
   });
+  $(".playback-summary").hidden = !t;
   if (t) {
     $("#loaded-tape .cassette").style.setProperty("--tape-color", t.color);
     $("#loaded-tape .tape-title").textContent = t.title;
@@ -351,8 +357,7 @@ async function action(fn) {
     }
   }
 }
-async function play({continueCycle=false} = {}) {
-  const resuming = transport.mode === "paused";
+async function play() {
   if (!transport.tape || transport.open)
     return message("Load a tape and close the door.");
   if (transport.position >= transport.duration)
@@ -380,7 +385,7 @@ async function play({continueCycle=false} = {}) {
     // Decoder duration may differ slightly from MP3 container metadata.
     side.duration = buffer.duration;
     audio.delta();
-    transport.play({continueCycle:continueCycle || resuming});
+    transport.play();
     audio.start(buffer, transport.position);
     display.wake();
   } finally {
@@ -525,10 +530,7 @@ $("#import-open").onclick = () => {
   $("#library-dialog").close();
   $("#import-dialog").showModal();
 };
-$("#reset-counter").onclick = () => {
-  counterZero = transport.position;
-  render();
-};
+
 $("#volume").oninput = (e) => {
   audio.setVolume(e.target.value / 100);
   render();
@@ -653,7 +655,7 @@ async function autoReverse() {
     if(!await waitForMechanism(650,controller.signal))return;
     if(!transport.reverseAtEnd())return;
     audio.sound("seat");counterZero=0;servicePhase="";persist();render();
-    await play({continueCycle:true});
+    await play();
   } finally {
     if(flipController===controller)flipController=null;
     servicePhase="";$("#player").classList.remove("reversing");render();
