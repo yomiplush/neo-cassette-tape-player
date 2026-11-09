@@ -1,23 +1,54 @@
+import { AudioBufferCache, audioBudget } from "./audio-cache.js";
 import { MechanismSounds } from "./mechanisms.js";
 // Original Web Audio tape model. Everything, including mechanisms, passes through master.
 export class CassetteAudio {
-  constructor() {
+  constructor(
+    hints = {
+      cores: globalThis.navigator?.hardwareConcurrency,
+      memory: globalThis.navigator?.deviceMemory,
+    },
+  ) {
     this.volume = 0.65;
     this.wear = 0.5;
     this.profile = "archive";
-    this.cache = new Map();
+    this.budget = audioBudget(hints);
+    this.cache = new AudioBufferCache(this.budget);
+    this.pending = new Map();
+    this.controllers = new Set();
+    this.transients = new Set();
+    this.oscillators = [];
+    this.disposed = false;
+    this.dropTimer = null;
+    this.meterSamples = new Uint8Array(128);
+    this.idleTimer = null;
     this.mode = "stopped";
     this.clock = 0;
   }
   async unlock() {
+    if (this.disposed)
+      throw new DOMException("Audio was disposed", "AbortError");
+    clearTimeout(this.idleTimer);
+    this.idleTimer = null;
     if (!this.ctx) this.create();
     if (this.ctx.state !== "running") await this.ctx.resume();
     this.mechanisms.preload().catch(() => {});
+    this.scheduleIdle();
   }
   create() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) throw new Error("This browser does not support Web Audio.");
-    this.ctx = new Ctx();
+    if (this.disposed)
+      throw new DOMException("Audio was disposed", "AbortError");
+    try {
+      this.ctx = new Ctx({
+        latencyHint: "balanced",
+        ...(this.budget.sampleRate
+          ? { sampleRate: this.budget.sampleRate }
+          : {}),
+      });
+    } catch {
+      this.ctx = new Ctx();
+    }
     const c = this.ctx;
     this.master = c.createGain();
     this.master.gain.value = this.volume;
@@ -59,6 +90,7 @@ export class CassetteAudio {
       osc.connect(gain).connect(this.delay.delayTime);
       osc.start();
       this.lfos.push(gain);
+      this.oscillators.push(osc);
     }
     const buffer = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
     const samples = buffer.getChannelData(0);
@@ -72,9 +104,17 @@ export class CassetteAudio {
     const filter = c.createBiquadFilter();
     filter.type = "highpass";
     filter.frequency.value = 900;
-    const hissCeiling=c.createBiquadFilter();hissCeiling.type="lowpass";hissCeiling.frequency.value=10800;
-    noise.connect(filter).connect(hissCeiling).connect(this.hiss).connect(this.master);
+    const hissCeiling = c.createBiquadFilter();
+    hissCeiling.type = "lowpass";
+    hissCeiling.frequency.value = 10800;
+    noise
+      .connect(filter)
+      .connect(hissCeiling)
+      .connect(this.hiss)
+      .connect(this.master);
     noise.start();
+    this.noise = noise;
+    this.hissFilters = [filter, hissCeiling];
     this.motor = c.createOscillator();
     this.motor.type = "triangle";
     this.motor.frequency.value = 72;
@@ -86,17 +126,47 @@ export class CassetteAudio {
     this.setWear(this.wear);
     this.clock = c.currentTime;
     const dropout = () => {
-      if (this.mode === "playing" && c.state === "running" && Math.random() < this.wear) {
-        const now = c.currentTime, amount = .01 + this.wear * .15;
-        this.dropout.gain.cancelScheduledValues(now); this.dropout.gain.setValueAtTime(1, now);
-        this.dropout.gain.linearRampToValueAtTime(1 - amount, now + .025);
-        this.dropout.gain.linearRampToValueAtTime(1, now + .09 + Math.random() * .12);
+      if (this.disposed) return;
+      if (
+        this.mode === "playing" &&
+        c.state === "running" &&
+        Math.random() < this.wear
+      ) {
+        const now = c.currentTime,
+          amount = 0.01 + this.wear * 0.15;
+        this.dropout.gain.cancelScheduledValues(now);
+        this.dropout.gain.setValueAtTime(1, now);
+        this.dropout.gain.linearRampToValueAtTime(1 - amount, now + 0.025);
+        this.dropout.gain.linearRampToValueAtTime(
+          1,
+          now + 0.09 + Math.random() * 0.12,
+        );
       }
       this.dropTimer = setTimeout(dropout, 5000 + Math.random() * 9000);
     };
     this.dropTimer = setTimeout(dropout, 5000 + Math.random() * 9000);
   }
 
+  scheduleIdle() {
+    clearTimeout(this.idleTimer);
+    this.idleTimer = null;
+    if (
+      this.disposed ||
+      !this.ctx ||
+      typeof this.ctx.startRendering === "function" ||
+      !["stopped", "paused"].includes(this.mode)
+    )
+      return;
+    this.idleTimer = setTimeout(() => {
+      this.idleTimer = null;
+      if (this.disposed || !["stopped", "paused"].includes(this.mode)) return;
+      if (this.pending.size || this.controllers.size) {
+        this.scheduleIdle();
+        return;
+      }
+      if (this.ctx.state === "running") void this.ctx.suspend().catch(() => {});
+    }, 1000);
+  }
   setVolume(value) {
     this.volume = Math.max(0, Math.min(1, value));
     if (this.ctx)
@@ -107,7 +177,9 @@ export class CassetteAudio {
       );
   }
   setProfile(name) {
-    this.profile = ["light", "medium", "heavy"].includes(name) ? name : "archive";
+    this.profile = ["light", "medium", "heavy"].includes(name)
+      ? name
+      : "archive";
     this.setWear(this.wear);
   }
   setWear(value) {
@@ -117,9 +189,14 @@ export class CassetteAudio {
       now = this.ctx.currentTime;
     // Tone targets adapted from YomiPlush's MIT youtube-cassette-filter presets.
     // Retain this engine's restrained instability and independent mechanism recordings.
-    const tone = {archive:[65,7300,3800,1.25,2,1],light:[50,9000,1200,2.2,.6,.85],medium:[80,6200,1400,3.6,.8,1.15],heavy:[110,4200,1300,5.5,1,1.4]}[this.profile];
-    this.highpass.frequency.setTargetAtTime(tone[0], now, .1);
-    this.lowpass.frequency.setTargetAtTime(tone[1] - w * tone[2], now, .1);
+    const tone = {
+      archive: [65, 7300, 3800, 1.25, 2, 1],
+      light: [50, 9000, 1200, 2.2, 0.6, 0.85],
+      medium: [80, 6200, 1400, 3.6, 0.8, 1.15],
+      heavy: [110, 4200, 1300, 5.5, 1, 1.4],
+    }[this.profile];
+    this.highpass.frequency.setTargetAtTime(tone[0], now, 0.1);
+    this.lowpass.frequency.setTargetAtTime(tone[1] - w * tone[2], now, 0.1);
     const curve = new Float32Array(2048),
       drive = tone[3] + w * tone[4];
     for (let i = 0; i < curve.length; i++) {
@@ -127,38 +204,123 @@ export class CassetteAudio {
       curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
     }
     this.saturator.curve = curve;
-    this.lfos[0].gain.setTargetAtTime((0.00012 + w * 0.00075) * tone[5], now, 0.1);
-    this.lfos[1].gain.setTargetAtTime((0.000008 + w * 0.000045) * tone[5], now, 0.1);
+    this.lfos[0].gain.setTargetAtTime(
+      (0.00012 + w * 0.00075) * tone[5],
+      now,
+      0.1,
+    );
+    this.lfos[1].gain.setTargetAtTime(
+      (0.000008 + w * 0.000045) * tone[5],
+      now,
+      0.1,
+    );
     this.ambience();
   }
-  async decode(id, data) {
+  async decode(id, data, { signal } = {}) {
+    if (this.disposed || signal?.aborted)
+      throw signal?.reason || new DOMException("Aborted", "AbortError");
     if (this.cache.has(id)) return this.cache.get(id);
-    const buffer = await this.ctx.decodeAudioData(data.slice(0));
-    this.cache.set(id, buffer);
-    const bytes = () =>
-      [...this.cache.values()].reduce(
-        (sum, b) => sum + b.length * b.numberOfChannels * 4,
-        0,
-      );
-    while (
-      this.cache.size > 1 &&
-      (this.cache.size > 2 || bytes() > 80 * 1024 * 1024)
-    )
-      this.cache.delete(this.cache.keys().next().value);
-    return buffer;
+    let job = this.pending.get(id);
+    if (!job) {
+      // Web Audio consumes the compressed ArrayBuffer; copying it doubles peak input memory.
+      job = this.ctx.decodeAudioData(data);
+      this.pending.set(id, job);
+    }
+    try {
+      const buffer = await job;
+      if (this.disposed || signal?.aborted)
+        throw signal?.reason || new DOMException("Aborted", "AbortError");
+      this.cache.set(id, buffer);
+      return buffer;
+    } finally {
+      if (this.pending.get(id) === job) this.pending.delete(id);
+    }
   }
   async load(side, signal) {
-    if (this.cache.has(side.key || side.url))
-      return this.cache.get(side.key || side.url);
-    let data;
-    if (side.blob) data = await side.blob.arrayBuffer();
-    else {
-      const res = await fetch(side.url, { signal });
-      if (!res.ok)
-        throw new Error("Could not load audio. Check your connection.");
-      data = await res.arrayBuffer();
+    if (this.disposed || signal?.aborted)
+      throw signal?.reason || new DOMException("Aborted", "AbortError");
+    const key = side.key || side.url;
+    if (this.cache.has(key)) return this.cache.get(key);
+    const controller = new AbortController(),
+      abort = () => controller.abort(signal?.reason);
+    signal?.addEventListener("abort", abort, { once: true });
+    this.controllers.add(controller);
+    try {
+      let data;
+      if (side.blob) data = await side.blob.arrayBuffer();
+      else {
+        const res = await fetch(side.url, { signal: controller.signal });
+        if (!res.ok)
+          throw new Error("Could not load audio. Check your connection.");
+        data = await res.arrayBuffer();
+      }
+      return await this.decode(key, data, { signal: controller.signal });
+    } finally {
+      signal?.removeEventListener("abort", abort);
+      this.controllers.delete(controller);
     }
-    return this.decode(side.key || side.url, data);
+  }
+  evict(tape) {
+    for (const side of Object.values(tape.sides))
+      this.cache.delete(side.key || side.url);
+  }
+  dispose() {
+    if (this.disposal) return this.disposal;
+    this.disposed = true;
+    clearTimeout(this.dropTimer);
+    this.dropTimer = null;
+    clearTimeout(this.idleTimer);
+    this.idleTimer = null;
+    for (const controller of this.controllers) controller.abort();
+    this.controllers.clear();
+    this.stopSource();
+    this.onPlaybackEnd = null;
+    this.mode = "stopped";
+    this.mechanisms?.dispose();
+    for (const { source, nodes } of this.transients) {
+      source.onended = null;
+      try {
+        source.stop();
+      } catch {}
+      for (const node of nodes) node.disconnect();
+    }
+    this.transients.clear();
+    for (const source of [...this.oscillators, this.noise, this.motor].filter(
+      Boolean,
+    )) {
+      try {
+        source.stop();
+      } catch {}
+      source.disconnect();
+    }
+    for (const node of [
+      this.master,
+      this.limiter,
+      this.input,
+      this.highpass,
+      this.lowpass,
+      this.saturator,
+      this.delay,
+      this.dropout,
+      this.envelope,
+      this.analyser,
+      this.hiss,
+      this.motorGain,
+      ...(this.lfos || []),
+      ...(this.hissFilters || []),
+    ].filter(Boolean))
+      node.disconnect();
+    this.oscillators = [];
+    this.noiseBuffer = null;
+    this.cache.clear();
+    this.pending.clear();
+    this.disposal =
+      this.ctx &&
+      this.ctx.state !== "closed" &&
+      typeof this.ctx.close === "function"
+        ? this.ctx.close().catch(() => {})
+        : Promise.resolve();
+    return this.disposal;
   }
   start(buffer, offset) {
     this.stopSource();
@@ -179,6 +341,7 @@ export class CassetteAudio {
   }
   stopSource() {
     if (this.source) {
+      this.source.onended = null;
       try {
         this.source.stop();
       } catch {}
@@ -192,17 +355,27 @@ export class CassetteAudio {
     const previous = this.mode;
     this.mode = mode;
     this.mechanisms?.setMode(mode);
-    if (mode === "stopped" && ["playing","forwarding","rewinding"].includes(previous)) this.sound("stop");
+    if (
+      mode === "stopped" &&
+      ["playing", "forwarding", "rewinding"].includes(previous)
+    )
+      this.sound("stop");
     if (mode !== "playing") this.stopSource();
     this.ambience();
     this.setSpoolPosition(this.spoolPosition ?? 0.5);
+    this.scheduleIdle();
   }
   ambience() {
     if (!this.ctx) return;
     const running = ["playing", "forwarding", "rewinding"].includes(this.mode),
       winding = this.mode.endsWith("ing") && this.mode !== "playing";
     this.hiss.gain.setTargetAtTime(
-      running ? (winding ? 0.0015 : (0.004 + this.wear * 0.012) * ({archive:1,light:.75,medium:1.2,heavy:1.65}[this.profile])) : 0,
+      running
+        ? winding
+          ? 0.0015
+          : (0.004 + this.wear * 0.012) *
+            { archive: 1, light: 0.75, medium: 1.2, heavy: 1.65 }[this.profile]
+        : 0,
       this.ctx.currentTime,
       0.05,
     );
@@ -223,7 +396,11 @@ export class CassetteAudio {
     );
   }
   createWinding() {
-    this.mechanisms = new MechanismSounds(this.ctx, this.master, this.noiseBuffer);
+    this.mechanisms = new MechanismSounds(
+      this.ctx,
+      this.master,
+      this.noiseBuffer,
+    );
     this.windEnvelope = this.mechanisms.windEnvelope;
   }
   setSpoolPosition(fraction) {
@@ -231,8 +408,10 @@ export class CassetteAudio {
     this.mechanisms?.position(this.spoolPosition);
   }
   sound(kind = "click") {
-    if (!this.ctx) return;
+    if (!this.ctx || this.disposed) return;
+    this.scheduleIdle();
     if (this.mechanisms?.play(kind)) return;
+    if (this.transients.size >= 24) return;
     const c = this.ctx,
       now = c.currentTime;
     // Two separate impacts: the latch catches, then its spring bounces back.
@@ -284,7 +463,10 @@ export class CassetteAudio {
       src.connect(filter).connect(gain).connect(this.master);
       src.start(when);
       src.stop(when + tap.duration);
+      const transient = { source: src, nodes: [src, filter, gain] };
+      this.transients.add(transient);
       src.onended = () => {
+        this.transients.delete(transient);
         src.disconnect();
         filter.disconnect();
         gain.disconnect();
@@ -300,7 +482,7 @@ export class CassetteAudio {
   }
   level() {
     if (!this.ctx || this.mode !== "playing") return 0;
-    const a = new Uint8Array(128);
+    const a = this.meterSamples;
     this.analyser.getByteTimeDomainData(a);
     return Math.sqrt(
       a.reduce((s, x) => s + ((x - 128) / 128) ** 2, 0) / a.length,

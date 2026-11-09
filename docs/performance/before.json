@@ -1,0 +1,22 @@
+{
+  "note": "Headless Chromium, CSS 3D; CPU throttle does not simulate a low-end GPU or native audio memory.",
+  "results": [
+    {
+      "cpuSlowdown": 1,
+      "seconds": 5.000399999999255,
+      "mutations": 1569,
+      "fps": 44.396448284143915,
+      "p95FrameMs": 33.40000000000009,
+      "quality": "high"
+    },
+    {
+      "cpuSlowdown": 6,
+      "seconds": 5.004300000001491,
+      "mutations": 828,
+      "fps": 27.576284395411722,
+      "p95FrameMs": 83.30000000000109,
+      "quality": "medium"
+    }
+  ],
+  "jsHeapBytes": 2140124
+}

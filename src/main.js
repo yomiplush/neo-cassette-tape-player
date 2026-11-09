@@ -1,4 +1,6 @@
 import "./style.css";
+import { createUpdateLoop } from "./update-loop.js";
+import { createPlayerView } from "./player-view.js";
 import { setupPortable } from "./portable.js";
 import { createAdaptiveRendering } from "./rendering.js";
 import { createCaseModel } from "./case-model.js";
@@ -34,21 +36,30 @@ audio.volume = finite(settings.volume, 0.65);
 audio.wear = finite(settings.wear, 0.5);
 audio.setProfile(settings.character);
 transport.setModel(settings.model);
-let displayQuality = ["low","medium","high"].includes(settings.displayQuality) ? settings.displayQuality : "auto";
+let displayQuality = ["low", "medium", "high"].includes(settings.displayQuality)
+  ? settings.displayQuality
+  : "auto";
 let selectedSkin = "harbor";
-let portableActive=false,portablePreference=settings.portable===true;
+let updater,
+  disposeCamera = () => {},
+  lastPersistAt = 0;
+const bootController = new AbortController();
+let portableActive = false,
+  portablePreference = settings.portable === true;
 let tapes = [...demos],
   busy = false,
   counterZero = 0,
-  lastMode = "",
-  lastModel = "",
   toastTimer,
   flipping = false,
   servicePhase = "",
   flipController = null,
   generation = 0,
   playController = null;
-const display = createAdaptiveRendering({override:displayQuality,isActive:()=>busy || ["playing","forwarding","rewinding"].includes(transport.mode)});
+const display = createAdaptiveRendering({
+  override: displayQuality,
+  isActive: () =>
+    busy || ["playing", "forwarding", "rewinding"].includes(transport.mode),
+});
 const esc = (s) =>
   String(s).replace(
     /[&<>"']/g,
@@ -59,8 +70,13 @@ const esc = (s) =>
   );
 const time = (n) =>
   `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(Math.floor(n % 60)).padStart(2, "0")}`;
-const controlIcons = import.meta.glob("./assets/controls/*.svg", {eager: true, query: "?url", import: "default"});
-const icon = (name) => `<img class="control-icon" src="${controlIcons[`./assets/controls/${name}.svg`]}" width="24" height="24" alt="" aria-hidden="true" draggable="false">`;
+const controlIcons = import.meta.glob("./assets/controls/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+const icon = (name) =>
+  `<img class="control-icon" src="${controlIcons[`./assets/controls/${name}.svg`]}" width="24" height="24" alt="" aria-hidden="true" draggable="false">`;
 const cassette = (mini = false) =>
   `<div class="cassette ${mini ? "mini" : ""}"><i class="tape-screw tl"></i><i class="tape-screw tr"></i><i class="tape-screw bl"></i><i class="tape-screw br"></i><div class="tape-label"><div class="label-top"><span class="tape-side">A</span><span>NEO SOUND ARCHIVE</span><span>STEREO</span></div><strong class="tape-title">YOUR NEXT MEMORY</strong><div class="label-rule"></div><div class="tape-window"><div class="spool left-spool"><div class="reel"></div></div><div class="tape-bridge"></div><div class="spool right-spool"><div class="reel"></div></div></div><div class="label-bottom"><span>LOW NOISE / HIGH FEELING</span><b>TYPE I</b></div></div><div class="cassette-foot"><i></i><span>● &nbsp; ▪ &nbsp; ●</span><i></i></div></div>`;
 
@@ -84,7 +100,7 @@ $("#app").innerHTML = `
 
  </div>
  <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">${icon("cassette")}</span><h2>What is on your tape?</h2><p>Pick one from the collection.<br>Find a sound for your state of mind.</p><button class="shelf-trigger primary">Choose a tape <span>${icon("arrow")}</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="playback-summary"><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><div class="side-row"><span><b id="side-label">A</b> Side</span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div></div><p class="tape-note">Rewind instead of skipping.<br>Open the door and flip to the other side.</p></div>
- <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div><div class="case-options"><label for="case-skin">FINISH<select id="case-skin">${skins.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select></label><label for="tape-character">TONE<select id="tape-character"><option value="archive">Original archive</option><option value="light">Light / Home dub</option><option value="medium">Medium / Street copy</option><option value="heavy">Heavy / Attic find</option></select></label><label for="deck-model">DECK<select id="deck-model"><option value="manual">NC-85 / Manual flip</option><option value="auto">NR-88 / Auto reverse</option></select></label><label for="render-quality">DISPLAY<select id="render-quality"><option value="auto">Auto / Adaptive</option><option value="low">Economy / 50%</option><option value="medium">Balanced / 75%</option><option value="high">Full detail / 100%</option></select></label></div></div>
+ <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div><div class="case-options"><label for="case-skin">FINISH<select id="case-skin">${skins.map((s) => `<option value="${s.id}">${s.name}</option>`).join("")}</select></label><label for="tape-character">TONE<select id="tape-character"><option value="archive">Original archive</option><option value="light">Light / Home dub</option><option value="medium">Medium / Street copy</option><option value="heavy">Heavy / Attic find</option></select></label><label for="deck-model">DECK<select id="deck-model"><option value="manual">NC-85 / Manual flip</option><option value="auto">NR-88 / Auto reverse</option></select></label><label for="render-quality">DISPLAY<select id="render-quality"><option value="auto">Auto / Adaptive</option><option value="low">Economy / 50%</option><option value="medium">Balanced / 75%</option><option value="high">Full detail / 100%</option></select></label></div></div>
  </aside></section>
  <section class="bottom-note"><span>01 — PUT THE WORLD ON PAUSE.</span><p>Even the rewinding becomes part of the music.</p><span>DESIGNED FOR SLOW LISTENING.</span></section>
 </main><footer class="site-footer"><span>NEO CASSETTE <span>— A SMALL TRIP BACK.</span></span><button id="credits-open">CREDITS & LICENSES</button></footer>
@@ -98,53 +114,124 @@ $("#app").innerHTML = `
 selectedSkin = applySkin($(".device-area"), settings.skin);
 $("#case-skin").value = selectedSkin;
 $("#tape-character").value = audio.profile;
-$("#case-skin").onchange = event => {selectedSkin=applySkin($(".device-area"),event.target.value);persist();};
-$("#tape-character").onchange = event => {audio.setProfile(event.target.value);persist();};
-const caseModel = createCaseModel({player:$("#player"), device:$(".device-area"), icon, isBusy:()=>busy || flipping,isPortable:()=>portableActive,getBudget:()=>display.state});
+$("#case-skin").onchange = (event) => {
+  selectedSkin = applySkin($(".device-area"), event.target.value);
+  persist();
+};
+$("#tape-character").onchange = (event) => {
+  audio.setProfile(event.target.value);
+  persist();
+};
+const caseModel = createCaseModel({
+  player: $("#player"),
+  device: $(".device-area"),
+  icon,
+  isBusy: () => busy || flipping,
+  isPortable: () => portableActive,
+  getBudget: () => display.state,
+});
 caseModel.setVariant(transport.model);
+const playerView = createPlayerView({ audio, transport });
 $("#deck-model").value = transport.model;
 $("#render-quality").value = displayQuality;
-$("#deck-model").onchange = event => {
-  cancelPlayback();flipController?.abort();flipController=null;generation++;busy=false;flipping=false;servicePhase="";
+$("#deck-model").onchange = (event) => {
+  cancelPlayback();
+  flipController?.abort();
+  flipController = null;
+  generation++;
+  busy = false;
+  flipping = false;
+  servicePhase = "";
   $("#player").classList.remove("reversing");
-  transport.stop(); audio.setMode("stopped"); transport.setModel(event.target.value);
-  caseModel.home({animate:false});caseModel.setVariant(transport.model);counterZero=0;persist();render();
+  transport.stop();
+  audio.setMode("stopped");
+  transport.setModel(event.target.value);
+  caseModel.home({ animate: false });
+  caseModel.setVariant(transport.model);
+  counterZero = 0;
+  persist();
+  render();
 };
-$("#render-quality").onchange = event => {displayQuality=event.target.value;display.setOverride(displayQuality);persist();};
-setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"), controls:$(".sound-controls"), closeButton:$("#settings-close")});
+$("#render-quality").onchange = (event) => {
+  displayQuality = event.target.value;
+  display.setOverride(displayQuality);
+  persist();
+};
+const curtain = setupSettingsCurtain({
+  button: $("#settings-open"),
+  dialog: $("#settings-curtain"),
+  controls: $(".sound-controls"),
+  closeButton: $("#settings-close"),
+});
 
 // The physical model uses one immutable coordinate system; only its camera scale fits.
 {
-  const deck = $(".device-area"), slot = document.createElement("div");
+  const deck = $(".device-area"),
+    slot = document.createElement("div");
   slot.className = "device-slot";
-  deck.classList.add("fixed-geometry");deck.dataset.tapeOrientation="vertical";
-  deck.before(slot); slot.append(deck);
-  const view=deck.querySelector(".case-view-controls");slot.append(view);
-  view.insertAdjacentHTML("afterbegin",`<button class="shelf-trigger collection-trigger" aria-label="Open tape collection">TAPE BOX <span class="count">03</span></button>`);
+  deck.classList.add("fixed-geometry");
+  deck.dataset.tapeOrientation = "vertical";
+  deck.before(slot);
+  slot.append(deck);
+  const view = deck.querySelector(".case-view-controls");
+  slot.append(view);
+  view.insertAdjacentHTML(
+    "afterbegin",
+    `<button class="shelf-trigger collection-trigger" aria-label="Open tape collection">TAPE BOX <span class="count">03</span></button>`,
+  );
   const fit = () => {
-    const scale=Math.max(.1,Math.min(1.8,(slot.clientWidth-12)/400,(slot.clientHeight-64)/500));
-    deck.style.transform=`translate(-50%, -50%) scale(${scale})`;
-    view.style.top=`calc(50% - ${250*scale+26}px)`;
-    const right=Math.min(Math.max(0,(slot.clientWidth-400*scale)/2),Math.max(0,slot.clientWidth-view.offsetWidth));
-    view.style.right=`${right}px`;
+    const scale = Math.max(
+      0.1,
+      Math.min(
+        1.8,
+        (slot.clientWidth - 12) / 400,
+        (slot.clientHeight - 64) / 500,
+      ),
+    );
+    deck.style.transform = `translate(-50%, -50%) scale(${scale})`;
+    view.style.top = `calc(50% - ${250 * scale + 26}px)`;
+    const right = Math.min(
+      Math.max(0, (slot.clientWidth - 400 * scale) / 2),
+      Math.max(0, slot.clientWidth - view.offsetWidth),
+    );
+    view.style.right = `${right}px`;
   };
   const observer = new ResizeObserver(fit);
-  observer.observe(slot); fit();
+  observer.observe(slot);
+  fit();
+  disposeCamera = () => observer.disconnect();
 }
 
-const summary=$(".playback-summary"), summaryHome=summary.parentElement;
-const portableDock=document.createElement("div");portableDock.className="portable-playback";$("#app").append(portableDock);
-setupPortable({button:$("#portable-toggle"),preferred:portablePreference,isBusy:()=>busy || flipping,onChange:({active,preferred})=>{
-  portableActive=active;portablePreference=preferred;
-  (active?portableDock:summaryHome).append(summary);
-  caseModel.cancelGesture();display.setPortable(active);persist();render();
-}});
+const summary = $(".playback-summary"),
+  summaryHome = summary.parentElement;
+const portableDock = document.createElement("div");
+portableDock.className = "portable-playback";
+$("#app").append(portableDock);
+const portable = setupPortable({
+  button: $("#portable-toggle"),
+  preferred: portablePreference,
+  isBusy: () => busy || flipping,
+  onChange: ({ active, preferred }) => {
+    portableActive = active;
+    portablePreference = preferred;
+    (active ? portableDock : summaryHome).append(summary);
+    caseModel.cancelGesture();
+    display.setPortable(active);
+    persist();
+    render();
+  },
+});
 
 document.addEventListener(
   "click",
   (e) => {
     const button = e.target.closest("button");
-    if (!button || button.disabled || button.matches("[data-action],.case-grip")) return;
+    if (
+      !button ||
+      button.disabled ||
+      button.matches("[data-action],.case-grip")
+    )
+      return;
     audio
       .unlock()
       .then(() => audio.sound("click"))
@@ -169,12 +256,10 @@ function persist() {
       character: audio.profile,
       model: transport.model,
       displayQuality,
-      portable:portablePreference,
+      portable: portablePreference,
     })
   )
-    message(
-      "Could not save playback position. Check browser storage.",
-    );
+    message("Could not save playback position. Check browser storage.");
 }
 function renderShelf() {
   $("#tape-total").textContent =
@@ -193,7 +278,8 @@ function renderShelf() {
     (b) =>
       (b.onclick = () =>
         action(async () => {
-          transport.stop(); audio.setMode("stopped");
+          transport.stop();
+          audio.setMode("stopped");
           const tape = tapes.find((t) => t.id === b.dataset.id);
           if (transport.tape?.id === tape.id) {
             $("#library-dialog").close();
@@ -220,7 +306,9 @@ function renderShelf() {
         action(async () => {
           if (transport.tape?.id === b.dataset.id)
             return message("Eject this tape before deleting it.");
+          const removed = tapes.find((t) => t.id === b.dataset.id);
           await deleteTape(b.dataset.id);
+          if (removed) audio.evict(removed);
           tapes = tapes.filter((t) => t.id !== b.dataset.id);
           delete transport.memory[b.dataset.id];
           persist();
@@ -233,109 +321,17 @@ function $$(s) {
   return [...document.querySelectorAll(s)];
 }
 function render() {
-  const t = transport.tape,
-    mode = transport.mode,
-    running = ["playing", "rewinding", "forwarding"].includes(mode);
-  $("#player").classList.toggle("door-open", transport.open);
-  $("#player").classList.toggle("has-tape", !!t);
-  $("#player").classList.toggle("running", running);
-  $("#player").classList.toggle(
-    "winding",
-    mode === "rewinding" || mode === "forwarding",
-  );
-  $("#player").classList.toggle("reverse", mode === "rewinding" || (mode === "playing" && transport.model === "auto" && transport.side === "B"));
-  $("#player").dataset.direction = transport.side;
-  if(lastModel !== transport.model) {
-    lastModel = transport.model;
-  $(".model-number").innerHTML = transport.model === "auto" ? 'NR-88<span>AUTO REVERSE</span>' : 'NC-85<span>STEREO</span>';
-  $(".back-brand small").textContent = transport.model === "auto" ? "NR-88 / AUTO REVERSE" : "NC-85 / PERSONAL STEREO";
-  $(".window-top > span:first-child").textContent = transport.model === "auto" ? "BI-DIRECTIONAL TAPE TRANSPORT" : "PRECISION TAPE TRANSPORT";
-  $('[data-action="flip"] span').textContent = transport.model === "auto" ? "DIRECTION A / B" : "FLIP A / B";
-  }
-
-  $("#loaded-tape").hidden = !t;
-  $("#liner-empty").hidden = !!t;
-  $("#liner-loaded").hidden = !t;
-  const names = {
-    stopped: transport.open ? "DOOR OPEN" : "READY",
-    playing: "PLAY",
-    paused: "PAUSE",
-    rewinding: "REW",
-    forwarding: "FF",
-  };
-  $("#door-state").textContent = transport.open ? "DOOR OPEN" : "DOOR LATCHED";
-  $$('[data-action="door"]').forEach(b=>b.setAttribute("aria-expanded", String(transport.open)));
-  $("#status").textContent = servicePhase ? servicePhase : flipping
-    ? "FLIPPING…"
-    : busy
-      ? "LOADING…"
-      : !t
-        ? "NO TAPE"
-        : names[mode];
-  $("#player").classList.toggle("flipping", flipping);
-  $$(".shelf-trigger").forEach((b) => (b.disabled = !!servicePhase || flipping));
-  $("#led").classList.toggle("on", mode === "playing");
-  $("#counter").textContent = String(
-    ((Math.floor((transport.position - counterZero) * 1.8) % 1000) + 1000) %
-      1000,
-  ).padStart(3, "0");
-  for (const [act, active] of Object.entries({
-    play: mode === "playing" || mode === "paused" || !!playController || transport.reversePending || servicePhase === "AUTO REVERSE…",
-    pause: mode === "paused",
-    rewind: mode === "rewinding",
-    forward: mode === "forwarding",
-  })) {
-    const key=$(`[data-action="${act}"]`);
-    key.classList.toggle("pressed",active);key.setAttribute("aria-pressed",String(active));
-  }
-  $("#portable-toggle").disabled=busy || flipping;
-  $$("[data-action]").forEach((b) => {
-    const a = b.dataset.action;
-    b.disabled =
-      (busy && !((["stop", "door", "flip", "eject"].includes(a) && playController) || (a === "stop" && flipController && servicePhase === "AUTO REVERSE…"))) ||
-      (["play", "pause", "rewind", "forward"].includes(a) &&
-        (!t || transport.open)) ||
-      (["flip", "eject"].includes(a) && !t);
+  playerView.render({
+    busy,
+    flipping,
+    servicePhase,
+    playPending: !!playController,
+    portable: portableActive,
+    counterZero,
   });
-  $(".playback-summary").hidden = !t;
-  if (t) {
-    $("#loaded-tape .cassette").style.setProperty("--tape-color", t.color);
-    $("#loaded-tape .tape-title").textContent = t.title;
-    $("#loaded-tape .tape-side").textContent = transport.model === "auto" ? "A" : transport.side;
-    $("#current-title").textContent = t.title;
-    $("#current-subtitle").textContent = t.subtitle;
-    $("#track-category").textContent = `${t.number} / ${t.genre}`;
-    $("#side-label").textContent = transport.side;
-    $("#track-time").textContent =
-      `${time(transport.position)} / ${time(transport.duration)}`;
-    $("#track-name").textContent = t.sides[transport.side].title;
-    $("#track-author").textContent = `${t.author} · ${t.license}`;
-    for(const reel of $("#loaded-tape").querySelectorAll(".reel")) {
-      reel.style.transform=portableActive?`rotate(${transport.position*240}deg)`:"";
-    }
-    const progress = transport.duration ? transport.position / transport.duration : 0;
-    const p = transport.model === "auto" && transport.side === "B" ? 1-progress : progress;
-    $("#position-fill").style.width = `${p * 100}%`;
-    $("#player").style.setProperty(
-      "--left-pack",
-      `${Math.sqrt(1 - p) * 26 + 39}%`,
-    );
-    $("#player").style.setProperty(
-      "--right-pack",
-      `${Math.sqrt(p) * 26 + 39}%`,
-    );
-  }
-  $("#volume-value").textContent = String(Math.round(audio.volume * 100));
-  $("#wear-value").textContent = String(Math.round(audio.wear * 100));
-  const level = audio.level();
-  $$(".vu-meter i").forEach((b, i) =>
-    b.classList.toggle("lit", i < level * 38),
-  );
-  if (lastMode !== mode) {
-    lastMode = mode;
-    document.title = `${mode === "playing" && t ? `${t.title} · ` : ""}NEO CASSETTE — NC-85`;
-  }
+  updater?.wake();
 }
+
 async function action(fn) {
   if (busy) return;
   const operation = ++generation;
@@ -348,7 +344,9 @@ async function action(fn) {
     if (operation === generation) {
       transport.stop();
       audio.setMode("stopped");
-      message(e.message || "Could not complete the operation. Please try again.");
+      message(
+        e.message || "Could not complete the operation. Please try again.",
+      );
     }
   } finally {
     if (operation === generation) {
@@ -414,62 +412,137 @@ async function control(name) {
   if (name === "rewind" || name === "forward") {
     if (transport.wind(name === "rewind" ? -1 : 1)) {
       audio.setMode(transport.mode);
-
     }
   }
   if (["door", "flip", "eject"].includes(name)) await service(name);
-
 }
 function waitForMechanism(ms, signal) {
   if (signal.aborted) return Promise.resolve(false);
-  return new Promise(resolve => {
-    const done = () => { clearTimeout(timer); signal.removeEventListener("abort", done); resolve(!signal.aborted); };
-    const timer = setTimeout(done, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : portableActive ? Math.min(ms,80) : ms);
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", done);
+      resolve(!signal.aborted);
+    };
+    const timer = setTimeout(
+      done,
+      matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? 0
+        : portableActive
+          ? Math.min(ms, 80)
+          : ms,
+    );
     signal.addEventListener("abort", done, { once: true });
   });
 }
 async function moveDoor(open, signal) {
   if (transport.open === open) return !signal.aborted;
-  transport.door(); audio.sound(open ? "door-open" : "door-close"); render();
+  transport.door();
+  audio.sound(open ? "door-open" : "door-close");
+  render();
   return waitForMechanism(360, signal);
 }
 function frameTape() {
   if (import.meta.env.MODE !== "selfhost") return;
   const rect = $("#loaded-tape .cassette").getBoundingClientRect();
-  const pocket = import.meta.env.MODE === "selfhost" && matchMedia("(max-width: 900px), (max-width: 1100px) and (max-height: 500px)").matches;
-  const bottom = pocket ? $(".transport-labels").getBoundingClientRect().top - 12 : innerHeight - 15;
-  if (rect.top < 110 || rect.bottom > bottom) window.scrollBy(0, rect.top - Math.max(110, (bottom - rect.height)/2));
+  const pocket =
+    import.meta.env.MODE === "selfhost" &&
+    matchMedia(
+      "(max-width: 900px), (max-width: 1100px) and (max-height: 500px)",
+    ).matches;
+  const bottom = pocket
+    ? $(".transport-labels").getBoundingClientRect().top - 12
+    : innerHeight - 15;
+  if (rect.top < 110 || rect.bottom > bottom)
+    window.scrollBy(0, rect.top - Math.max(110, (bottom - rect.height) / 2));
 }
 async function service(name) {
-  caseModel.home({animate:false});
+  caseModel.home({ animate: false });
   if (name !== "door" && !transport.tape) return;
-  transport.stop(); audio.setMode("stopped"); persist();
-  const controller = new AbortController(), signal = controller.signal, wasOpen = transport.open, width = innerWidth;
-  flipController = controller; servicePhase = name === "flip" ? "FLIPPING…" : name === "eject" ? "EJECTING…" : "DOOR…";
-  const resized = () => { if (innerWidth !== width) controller.abort(); }; window.addEventListener("resize", resized);
+  transport.stop();
+  audio.setMode("stopped");
+  persist();
+  const controller = new AbortController(),
+    signal = controller.signal,
+    wasOpen = transport.open,
+    width = innerWidth;
+  flipController = controller;
+  servicePhase =
+    name === "flip" ? "FLIPPING…" : name === "eject" ? "EJECTING…" : "DOOR…";
+  const resized = () => {
+    if (innerWidth !== width) controller.abort();
+  };
+  window.addEventListener("resize", resized);
   try {
-    if (name === "door") { await moveDoor(!wasOpen, signal); return; }
+    if (name === "door") {
+      await moveDoor(!wasOpen, signal);
+      return;
+    }
     if (name === "flip" && transport.model === "auto") {
-      if (!await moveDoor(false, signal)) return;
-      servicePhase="DIRECTION…";$("#player").classList.add("reversing");render();
-      if(await waitForMechanism(450,signal)){transport.switchDirection();audio.sound("seat");counterZero=0;persist();}
-      $("#player").classList.remove("reversing");return;
+      if (!(await moveDoor(false, signal))) return;
+      servicePhase = "DIRECTION…";
+      $("#player").classList.add("reversing");
+      render();
+      if (await waitForMechanism(450, signal)) {
+        transport.switchDirection();
+        audio.sound("seat");
+        counterZero = 0;
+        persist();
+      }
+      $("#player").classList.remove("reversing");
+      return;
     }
-    if (!await moveDoor(true, signal)) return;
-    frameTape(); if (signal.aborted) return;
+    if (!(await moveDoor(true, signal))) return;
+    frameTape();
+    if (signal.aborted) return;
     if (name === "flip") {
-      flipping = true; render();
-      await flipCassette({element:$("#loaded-tape .cassette"), nextSide:transport.side === "A" ? "B" : "A", signal,
-        reducedMotion:portableActive || matchMedia("(prefers-reduced-motion: reduce)").matches,
-        commit:()=>{ if(transport.flip()){counterZero=0;audio.sound("flip");persist();render();} }
+      flipping = true;
+      render();
+      await flipCassette({
+        element: $("#loaded-tape .cassette"),
+        nextSide: transport.side === "A" ? "B" : "A",
+        signal,
+        reducedMotion:
+          portableActive ||
+          matchMedia("(prefers-reduced-motion: reduce)").matches,
+        commit: () => {
+          if (transport.flip()) {
+            counterZero = 0;
+            audio.sound("flip");
+            persist();
+            render();
+          }
+        },
       });
-      if (!signal.aborted) { audio.sound("seat"); if (!wasOpen) await moveDoor(false, signal); }
+      if (!signal.aborted) {
+        audio.sound("seat");
+        if (!wasOpen) await moveDoor(false, signal);
+      }
     } else {
-      render(); await ejectCassette({element:$("#loaded-tape .cassette"),signal,reducedMotion:portableActive || matchMedia("(prefers-reduced-motion: reduce)").matches,
-        commit:()=>{transport.eject();counterZero=0;audio.sound("seat");persist();render();} });
-      if(!signal.aborted) message("Tape ejected. Choose your next tape from TAPE BOX.");
+      render();
+      await ejectCassette({
+        element: $("#loaded-tape .cassette"),
+        signal,
+        reducedMotion:
+          portableActive ||
+          matchMedia("(prefers-reduced-motion: reduce)").matches,
+        commit: () => {
+          transport.eject();
+          counterZero = 0;
+          audio.sound("seat");
+          persist();
+          render();
+        },
+      });
+      if (!signal.aborted)
+        message("Tape ejected. Choose your next tape from TAPE BOX.");
     }
-  } finally { window.removeEventListener("resize",resized); flipping=false;servicePhase="";flipController=null; }
+  } finally {
+    window.removeEventListener("resize", resized);
+    flipping = false;
+    servicePhase = "";
+    flipController = null;
+  }
 }
 function cancelPlayback() {
   if (!playController) return;
@@ -483,14 +556,22 @@ function cancelPlayback() {
 }
 function dispatch(name) {
   if (name === "stop" && flipController && servicePhase === "AUTO REVERSE…") {
-    flipController.abort();flipController=null;generation++;busy=false;servicePhase="";
-    transport.stop();audio.setMode("stopped");persist();render();return;
+    flipController.abort();
+    flipController = null;
+    generation++;
+    busy = false;
+    servicePhase = "";
+    transport.stop();
+    audio.setMode("stopped");
+    persist();
+    render();
+    return;
   }
-  if (["stop","door","flip","eject"].includes(name) && playController) {
+  if (["stop", "door", "flip", "eject"].includes(name) && playController) {
     cancelPlayback();
     audio.sound("click");
     persist();
-    if(name !== "stop") action(()=>control(name));
+    if (name !== "stop") action(() => control(name));
   } else
     action(() => {
       audio.sound("click");
@@ -510,20 +591,22 @@ $$(".shelf-trigger").forEach(
 $$(".close-dialog").forEach(
   (b) => (b.onclick = () => b.closest("dialog").close()),
 );
-$$("dialog").filter(d => d.id !== "settings-curtain").forEach((d) =>
-  d.addEventListener("click", (e) => {
-    if (e.target === d) {
-      const r = d.getBoundingClientRect();
-      if (
-        e.clientX < r.left ||
-        e.clientX > r.right ||
-        e.clientY < r.top ||
-        e.clientY > r.bottom
-      )
-        d.close();
-    }
-  }),
-);
+$$("dialog")
+  .filter((d) => d.id !== "settings-curtain")
+  .forEach((d) =>
+    d.addEventListener("click", (e) => {
+      if (e.target === d) {
+        const r = d.getBoundingClientRect();
+        if (
+          e.clientX < r.left ||
+          e.clientX > r.right ||
+          e.clientY < r.top ||
+          e.clientY > r.bottom
+        )
+          d.close();
+      }
+    }),
+  );
 $("#about-open").onclick = () => $("#about-dialog").showModal();
 $("#credits-open").onclick = () => $("#credits-dialog").showModal();
 $("#import-open").onclick = () => {
@@ -550,6 +633,7 @@ $("#import-form").onsubmit = async (e) => {
   busy = true;
   submit.disabled = true;
   status.textContent = "Checking audio…";
+  const importKeys = [];
   try {
     await audio.unlock();
     const a = form.elements.sideA.files[0],
@@ -561,10 +645,13 @@ $("#import-form").onsubmit = async (e) => {
       ["B", b],
     ]) {
       if (!file || file.size > 30 * 1024 * 1024 || file.size === 0)
-        throw new Error(
-          "Choose a nonempty audio file up to 30 MB per side.",
-        );
+        throw new Error("Choose a nonempty audio file up to 30 MB per side.");
+      if (side === "B" && file === a) {
+        sides.B = { ...sides.A };
+        continue;
+      }
       let decoded;
+      importKeys.push(`${id}-${side}`);
       try {
         decoded = await audio.decode(`${id}-${side}`, await file.arrayBuffer());
       } catch {
@@ -610,6 +697,7 @@ $("#import-form").onsubmit = async (e) => {
     $("#library-dialog").showModal();
     message("Your mixtape is ready.");
   } catch (err) {
+    for (const key of importKeys) audio.cache.delete(key);
     status.textContent = err.message;
   } finally {
     busy = false;
@@ -642,41 +730,63 @@ document.addEventListener("keydown", (e) => {
 });
 let autoQueued = false;
 function queueAutoReverse() {
-  if(autoQueued || !transport.reversePending)return;
-  autoQueued=true;
-  queueMicrotask(()=>{autoQueued=false;if(transport.reversePending && !busy) void action(autoReverse);});
+  if (autoQueued || !transport.reversePending) return;
+  autoQueued = true;
+  queueMicrotask(() => {
+    autoQueued = false;
+    if (transport.reversePending && !busy) void action(autoReverse);
+  });
 }
 async function autoReverse() {
-  if(!transport.reversePending || transport.model !== "auto")return;
-  const controller=new AbortController();flipController=controller;
-  servicePhase="AUTO REVERSE…";$("#player").classList.add("reversing");render();
+  if (!transport.reversePending || transport.model !== "auto") return;
+  const controller = new AbortController();
+  flipController = controller;
+  servicePhase = "AUTO REVERSE…";
+  $("#player").classList.add("reversing");
+  render();
   try {
     audio.sound("stop");
-    if(!await waitForMechanism(650,controller.signal))return;
-    if(!transport.reverseAtEnd())return;
-    audio.sound("seat");counterZero=0;servicePhase="";persist();render();
+    if (!(await waitForMechanism(650, controller.signal))) return;
+    if (!transport.reverseAtEnd()) return;
+    audio.sound("seat");
+    counterZero = 0;
+    servicePhase = "";
+    persist();
+    render();
     await play();
   } finally {
-    if(flipController===controller)flipController=null;
-    servicePhase="";$("#player").classList.remove("reversing");render();
+    if (flipController === controller) flipController = null;
+    servicePhase = "";
+    $("#player").classList.remove("reversing");
+    render();
   }
 }
 function advance() {
-  const ended=transport.tick(audio.delta());
-  if(ended){
-    audio.setMode("stopped");persist();
-    if(transport.reversePending)queueAutoReverse();else message("Click. End of tape.");
+  const ended = transport.tick(audio.delta());
+  if (ended) {
+    audio.setMode("stopped");
+    persist();
+    if (transport.reversePending) queueAutoReverse();
+    else message("Click. End of tape.");
   }
   return ended;
 }
 audio.onPlaybackEnd = () => {
-  if(transport.mode !== "playing")return;
-  audio.delta();transport.finishPlayback();audio.setMode("stopped");persist();render();
-  if(transport.reversePending)queueAutoReverse();
+  if (transport.mode !== "playing") return;
+  audio.delta();
+  transport.finishPlayback();
+  audio.setMode("stopped");
+  persist();
+  render();
+  if (transport.reversePending) queueAutoReverse();
 };
 function interrupt() {
+  generation++;
   flipController?.abort();
   cancelPlayback();
+  busy = false;
+  flipping = false;
+  servicePhase = "";
   advance();
   transport.stop();
   audio.setMode("stopped");
@@ -688,27 +798,68 @@ document.addEventListener("visibilitychange", () => {
   advance();
   persist();
   if (!document.hidden) render();
+  updater?.wake();
 });
-window.addEventListener("pagehide", () => {
+const transportActive = () =>
+  busy ||
+  transport.reversePending ||
+  ["playing", "forwarding", "rewinding"].includes(transport.mode);
+window.addEventListener("pagehide", (event) => {
   interrupt();
   persist();
+  updater.pause();
+  display.suspend();
+  if (!event.persisted) {
+    bootController.abort();
+    clearTimeout(toastTimer);
+    updater.dispose();
+    display.dispose();
+    caseModel.dispose();
+    disposeCamera();
+    curtain.dispose();
+    portable.dispose();
+    void audio.dispose();
+  }
+});
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    display.resume();
+    updater.resume();
+    render();
+  }
 });
 function updateTransport() {
-  let changed=advance();
-  if(audio.ctx && audio.ctx.state !== "running" && transport.mode !== "stopped" && !busy){transport.stop();audio.setMode("stopped");changed=true;}
-  if(transport.duration)audio.setSpoolPosition(transport.position/transport.duration);
-  if(transport.reversePending && !busy)queueAutoReverse();
-  const active=transport.mode !== "stopped" || busy;
-  if(!document.hidden && (active || changed))render();
-  setTimeout(updateTransport,document.hidden ? 1000 : active ? display.state.uiInterval : 400);
+  let changed = advance();
+  if (
+    audio.ctx &&
+    audio.ctx.state !== "running" &&
+    transportActive() &&
+    !busy
+  ) {
+    transport.stop();
+    audio.setMode("stopped");
+    changed = true;
+  }
+  if (transport.duration)
+    audio.setSpoolPosition(transport.position / transport.duration);
+  if (transport.reversePending && !busy) queueAutoReverse();
+  if (!document.hidden && (transportActive() || changed)) render();
+  if (transportActive() && performance.now() - lastPersistAt > 2500) {
+    persist();
+    lastPersistAt = performance.now();
+  }
 }
-setTimeout(updateTransport,display.state.uiInterval);
-setInterval(() => {
-  if (transport.mode !== "stopped") persist();
-}, 2500);
+updater = createUpdateLoop({
+  update: updateTransport,
+  active: transportActive,
+  delay: () => (document.hidden ? 1000 : display.state.uiInterval),
+});
+
 (async () => {
   try {
-    const res = await fetch(`${import.meta.env.BASE_URL}audio/manifest.json`);
+    const res = await fetch(`${import.meta.env.BASE_URL}audio/manifest.json`, {
+      signal: bootController.signal,
+    });
     if (!res.ok) throw new Error();
     const manifest = await res.json();
     for (const t of demos)
@@ -717,14 +868,15 @@ setInterval(() => {
         if (entry) side.duration = entry.duration;
       }
   } catch {
-    message(
-      "Could not load the demo collection. Please reload.",
-    );
+    if (bootController.signal.aborted) return;
+    message("Could not load the demo collection. Please reload.");
   }
   try {
     tapes.push(...(await getImports()));
   } catch {
-    message("Local audio storage is unavailable. Demo tracks are still playable.");
+    message(
+      "Local audio storage is unavailable. Demo tracks are still playable.",
+    );
   }
   renderShelf();
   render();

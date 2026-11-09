@@ -2479,3 +2479,19 @@ html[data-portable="true"] .portable-playback .playback-summary .side-row {margi
 @media(max-height:600px) and (orientation:portrait){
   html[data-portable="true"] .device-area.fixed-geometry .transport button {min-height:44px}
 }
+
+/* Adaptive decoration never changes hit targets, model geometry or audio. */
+[data-quality="low"] .spool .reel {animation-timing-function:steps(90,end)}
+[data-quality="medium"] .spool .reel {animation-timing-function:steps(180,end)}
+[data-quality="low"] .winding .reel {animation-timing-function:steps(10,end)}
+[data-quality="medium"] .winding .reel {animation-timing-function:steps(20,end)}
+[data-page-hidden="true"] .reel,
+.case-front[data-visible="false"] .reel {animation-play-state:paused}
+[data-effects="minimal"] .case-glint,
+[data-effects="minimal"] .deck-window:after,
+[data-effects="minimal"] .cassette:after {display:none}
+[data-effects="minimal"] .case-front,
+[data-effects="minimal"] .case-back,
+[data-effects="minimal"] .door {box-shadow:none!important;filter:none!important}
+[data-effects="minimal"] .player:before {mix-blend-mode:normal}
+[data-effects="minimal"] .case-back {background:linear-gradient(115deg,var(--case-mid),var(--case-base))}

@@ -3,10 +3,10 @@ async function load(page){await page.goto('/');await page.getByRole('button',{na
 
 test('installed cassette and viewing aperture are portrait oriented',async({page})=>{
   await load(page);
-  const tape=await page.locator('#loaded-tape .cassette').boundingBox();
-  const window=await page.locator('.deck-window').boundingBox();
-  expect(tape.height/tape.width).toBeGreaterThan(1.5);
-  expect(window.height/window.width).toBeGreaterThan(1.5);
+  // READY can precede the final CSS door-closing frame; inspect the settled pose.
+  for(const selector of ['#loaded-tape .cassette','.deck-window']){
+    await expect.poll(async()=>{const b=await page.locator(selector).boundingBox();return b.height/b.width;}).toBeGreaterThan(1.5);
+  }
 });
 
 test('swiping blank room space rotates the model without opening the door',async({page})=>{
