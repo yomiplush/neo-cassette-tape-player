@@ -113,3 +113,26 @@ test('recorded mechanisms decode, render and retry after a transient fetch failu
   expect(result.count).toBe(6);
   expect(result.rms).toBeGreaterThan(0.01);
 });
+
+test('legacy-derived characters render distinct treble loss while keeping the master mute', async ({page}) => {
+  await page.goto('/');
+  const result=await page.evaluate(async()=>{
+    const {CassetteAudio}=await import('/src/audio.js');
+    const native=window.AudioContext;
+    window.AudioContext=class extends OfflineAudioContext {constructor(){super(1,44100,44100);}};
+    async function render(profile,mute=false){
+      const audio=new CassetteAudio();audio.setProfile(profile);audio.create();audio.setVolume(mute?0:1);audio.setWear(.5);
+      const buffer=audio.ctx.createBuffer(1,44100,44100), data=buffer.getChannelData(0);
+      for(let i=0;i<data.length;i++)data[i]=.2*Math.sin(i*2*Math.PI*12000/44100);
+      audio.start(buffer,0);
+      const output=await audio.ctx.startRendering();clearTimeout(audio.dropTimer);
+      const tail=output.getChannelData(0).slice(22050);
+      return Math.sqrt(tail.reduce((sum,x)=>sum+x*x,0)/tail.length);
+    }
+    try{return {light:await render('light'),heavy:await render('heavy'),muted:await render('heavy',true)};}
+    finally{window.AudioContext=native;}
+  });
+  expect(result.light).toBeGreaterThan(.005);
+  expect(result.heavy).toBeLessThan(result.light*.7);
+  expect(result.muted).toBeLessThan(.000001);
+});

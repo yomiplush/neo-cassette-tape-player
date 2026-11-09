@@ -70,3 +70,16 @@ test("self-hosted drawers fit a narrow phone and rotate without overflowing", as
   await page.getByRole("button", { name: "Close import dialog" }).click();
   await expect(page.locator("#import-dialog")).not.toBeVisible();
 });
+
+test('portrait self-hosted settings use the curtain and keep one set of controls',async({page})=>{
+  await page.goto('/');
+  await page.getByRole('button',{name:'Open settings'}).click();
+  await expect(page.locator('#settings-curtain')).toHaveAttribute('data-phase','open');
+  await expect(page.locator('#settings-curtain #volume')).toBeVisible();
+  await page.locator('#case-skin').selectOption('ivory');
+  await page.getByRole('button',{name:'Back to the deck'}).click();
+  await expect(page.locator('.device-area')).toHaveAttribute('data-skin','ivory');
+  await page.setViewportSize({width:844,height:390});
+  await expect(page.locator('.liner #volume')).toBeVisible();
+  await expect(page.locator('#volume')).toHaveCount(1);
+});

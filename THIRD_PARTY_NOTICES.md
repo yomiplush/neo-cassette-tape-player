@@ -3767,3 +3767,9 @@ Repository: https://github.com/websockets/ws
 ## Cassette mechanism recordings — CC0 1.0
 
 stecman (Freesound 376058), Joseph SARDIN / BigSoundBank (0566), and Spring Spring (OpenGameArt). Source links, transformations and used files: `public/sfx/credits.json`. Full CC0 text: `public/licenses/SFX-CC0.txt`. These assets retain their CC0 status separately from the application's MIT license.
+
+## Legacy cassette tone profile design — MIT
+
+Adapted tone targets from YomiPlush's `youtube-cassette-filter`, revision `1f0150146b574b89386abeddb90e68d5fa12532d`: https://github.com/yomiplush/youtube-cassette-filter
+
+Copyright (c) 2026 YomiPlush. Complete MIT permission and warranty text is retained in `vendor/youtube-cassette-filter/LICENSE` and `public/licenses/LEGACY-FILTER-MIT.txt`. No recordings or YouTube media are included from that project.

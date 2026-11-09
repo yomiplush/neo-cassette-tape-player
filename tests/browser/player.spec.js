@@ -220,7 +220,7 @@ test('demo fits one viewport with reachable controls in portrait and landscape',
   for (const [width,height] of [[1440,900],[1280,720],[390,844],[320,568],[320,480],[844,390]]) {
     await page.setViewportSize({width,height});
     await page.waitForTimeout(150);
-    const boxes = await page.locator('.creator-links a, #player, [data-action], #volume, #wear, #credits-open').evaluateAll(elements => elements.map(el => {
+    const boxes = await page.locator('.creator-links a, #player, [data-action], #volume, #wear, #case-skin, #tape-character, #credits-open').evaluateAll(elements => elements.filter(el=>el.getClientRects().length).map(el => {
       const r=el.getBoundingClientRect(); return {label:el.getAttribute('aria-label') || el.id, left:r.left, top:r.top, right:r.right, bottom:r.bottom, width:r.width,height:r.height};
     }));
     for (const b of boxes) {

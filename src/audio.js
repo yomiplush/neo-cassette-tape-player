@@ -4,6 +4,7 @@ export class CassetteAudio {
   constructor() {
     this.volume = 0.65;
     this.wear = 0.5;
+    this.profile = "archive";
     this.cache = new Map();
     this.mode = "stopped";
     this.clock = 0;
@@ -105,21 +106,29 @@ export class CassetteAudio {
         0.025,
       );
   }
+  setProfile(name) {
+    this.profile = ["light", "medium", "heavy"].includes(name) ? name : "archive";
+    this.setWear(this.wear);
+  }
   setWear(value) {
     this.wear = Math.max(0, Math.min(1, value));
     if (!this.ctx) return;
     const w = this.wear,
       now = this.ctx.currentTime;
-    this.lowpass.frequency.setTargetAtTime(7300 - w * 3800, now, 0.1);
+    // Tone targets adapted from YomiPlush's MIT youtube-cassette-filter presets.
+    // Retain this engine's restrained instability and independent mechanism recordings.
+    const tone = {archive:[65,7300,3800,1.25,2,1],light:[50,9000,1200,2.2,.6,.85],medium:[80,6200,1400,3.6,.8,1.15],heavy:[110,4200,1300,5.5,1,1.4]}[this.profile];
+    this.highpass.frequency.setTargetAtTime(tone[0], now, .1);
+    this.lowpass.frequency.setTargetAtTime(tone[1] - w * tone[2], now, .1);
     const curve = new Float32Array(2048),
-      drive = 1.25 + w * 2;
+      drive = tone[3] + w * tone[4];
     for (let i = 0; i < curve.length; i++) {
       const x = (i * 2) / (curve.length - 1) - 1;
       curve[i] = Math.tanh(x * drive) / Math.tanh(drive);
     }
     this.saturator.curve = curve;
-    this.lfos[0].gain.setTargetAtTime(0.00012 + w * 0.00075, now, 0.1);
-    this.lfos[1].gain.setTargetAtTime(0.000008 + w * 0.000045, now, 0.1);
+    this.lfos[0].gain.setTargetAtTime((0.00012 + w * 0.00075) * tone[5], now, 0.1);
+    this.lfos[1].gain.setTargetAtTime((0.000008 + w * 0.000045) * tone[5], now, 0.1);
     this.ambience();
   }
   async decode(id, data) {
@@ -193,7 +202,7 @@ export class CassetteAudio {
     const running = ["playing", "forwarding", "rewinding"].includes(this.mode),
       winding = this.mode.endsWith("ing") && this.mode !== "playing";
     this.hiss.gain.setTargetAtTime(
-      running ? (winding ? 0.0015 : 0.004 + this.wear * 0.012) : 0,
+      running ? (winding ? 0.0015 : (0.004 + this.wear * 0.012) * ({archive:1,light:.75,medium:1.2,heavy:1.65}[this.profile])) : 0,
       this.ctx.currentTime,
       0.05,
     );

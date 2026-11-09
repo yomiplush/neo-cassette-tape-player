@@ -1,4 +1,7 @@
 import "./style.css";
+import { createCaseModel } from "./case-model.js";
+import { skins, applySkin } from "./skins.js";
+import { setupSettingsCurtain } from "./settings-curtain.js";
 import { TapeTransport } from "./transport.js";
 import { CassetteAudio } from "./audio.js";
 import { flipCassette, ejectCassette } from "./flip.js";
@@ -27,6 +30,8 @@ const finite = (n, fallback) =>
     : fallback;
 audio.volume = finite(settings.volume, 0.65);
 audio.wear = finite(settings.wear, 0.5);
+audio.setProfile(settings.character);
+let selectedSkin = "harbor";
 let tapes = [...demos],
   busy = false,
   counterZero = 0,
@@ -53,7 +58,7 @@ const cassette = (mini = false) =>
   `<div class="cassette ${mini ? "mini" : ""}"><i class="tape-screw tl"></i><i class="tape-screw tr"></i><i class="tape-screw bl"></i><i class="tape-screw br"></i><div class="tape-label"><div class="label-top"><span class="tape-side">A</span><span>NEO SOUND ARCHIVE</span><span>STEREO</span></div><strong class="tape-title">YOUR NEXT MEMORY</strong><div class="label-rule"></div><div class="tape-window"><div class="spool left-spool"><div class="reel"></div></div><div class="tape-bridge"></div><div class="spool right-spool"><div class="reel"></div></div></div><div class="label-bottom"><span>LOW NOISE / HIGH FEELING</span><b>TYPE I</b></div></div><div class="cassette-foot"><i></i><span>● &nbsp; ▪ &nbsp; ●</span><i></i></div></div>`;
 
 $("#app").innerHTML = `
-<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE home">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><nav class="creator-links" aria-label="Creator links"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush website" title="YomiPlush website"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="Support on GitHub Sponsors" title="Support on GitHub Sponsors"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
+<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE home">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><button id="settings-open" aria-label="Open settings" aria-controls="settings-curtain" aria-expanded="false">${icon("settings")}</button><nav class="creator-links" aria-label="Creator links"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush website" title="YomiPlush website"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="Support on GitHub Sponsors" title="Support on GitHub Sponsors"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
 <main>
  <section class="intro"><div><div class="eyebrow"><span class="tiny-dot"></span> PERSONAL STEREO / EST. 1985</div><h1>A little imperfection.<br><em>Just right.</em></h1></div><p>Pick a tape. Press play.<br>The hiss. The wobble. The memories.<br><span>A little hiss. A lot of feeling.</span></p></section>
  <section class="listening-space" aria-label="Cassette player">
@@ -72,15 +77,24 @@ $("#app").innerHTML = `
 
  </div>
  <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">${icon("cassette")}</span><h2>What is on your tape?</h2><p>Pick one from the collection.<br>Find a sound for your state of mind.</p><button class="shelf-trigger primary">Choose a tape <span>${icon("arrow")}</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="side-row"><span>SIDE <b id="side-label">A</b></span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><p class="tape-note">Rewind instead of skipping.<br>Open the door and flip to the other side.</p></div>
- <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div></div>
+ <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">${icon("info")}</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div><div class="case-options"><label for="case-skin">CASE FINISH<select id="case-skin">${skins.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select></label><label for="tape-character">TAPE CHARACTER<select id="tape-character"><option value="archive">Original archive</option><option value="light">Light / Home dub</option><option value="medium">Medium / Street copy</option><option value="heavy">Heavy / Attic find</option></select></label></div></div>
  </aside></section>
  <section class="bottom-note"><span>01 — PUT THE WORLD ON PAUSE.</span><p>Even the rewinding becomes part of the music.</p><span>DESIGNED FOR SLOW LISTENING.</span></section>
 </main><footer class="site-footer"><span>NEO CASSETTE <span>— A SMALL TRIP BACK.</span></span><button id="credits-open">CREDITS & LICENSES</button></footer>
 <dialog id="library-dialog" aria-labelledby="library-heading"><div class="dialog-header"><div><div class="eyebrow">THE COLLECTION</div><h2 id="library-heading">Your tape collection<span id="tape-total">03 TAPES</span></h2></div><button class="close-dialog" aria-label="Close tape collection">${icon("close")}</button></div><p class="dialog-intro">Pick a tape for today’s soundtrack.</p><div id="tape-grid" class="tape-grid"></div><button id="import-open" class="import-button"><b>${icon("plus")}</b><span>Make your own mixtape<small>Create sides A / B from audio files</small></span><span>${icon("arrow")}</span></button><p class="library-note">DEMO COLLECTION · 6 ORIGINAL TRACKS BY DURU-AI · CC0<br>Imported audio stays in this browser.</p></dialog>
 <dialog id="import-dialog" aria-labelledby="import-heading"><form id="import-form"><div class="dialog-header"><div><div class="eyebrow">MAKE A MIXTAPE</div><h2 id="import-heading">Give your music a home.</h2></div><button type="button" class="close-dialog" aria-label="Close import dialog">${icon("close")}</button></div><p class="dialog-intro">One track per side. Turn your audio into a mixtape.</p><label class="form-label">Tape name<input name="title" maxlength="40" placeholder="Example: The way home" required></label><label class="form-label file-label">SIDE A <span>Required</span><input name="sideA" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" required></label><label class="form-label file-label">SIDE B <span>Optional; uses side A when omitted</span><input name="sideB" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"></label><p class="form-hint">Up to 30 MB and 10 minutes per side. Use MP3, WAV, M4A or another browser-supported format. Files are never uploaded.</p><button class="primary import-submit" type="submit">Create tape <span>${icon("arrow")}</span></button><p id="import-status" role="status"></p></form></dialog>
-<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">Enjoy the ritual.</h2></div><button class="close-dialog" aria-label="Close instructions">${icon("close")}</button></div><div class="manual"><p><b>01 / Choose a tape</b>Choose a tape from the collection. The deck stops, opens and loads it automatically.</p><p><b>02 / Press a button</b>PLAY starts playback, PAUSE pauses, REW / F.FWD winds at 12x speed, and STOP stops. The deck clicks to a stop at the end.</p><p><b>03 / Flip the tape</b>Press FLIP to stop, open, turn the tape and close the door. An already open door stays open. Each side remembers its position. Flipping from the end starts the other side at zero. RESET changes only the counter.</p><p><b>04 / Set the wear</b>Hiss, wow and flutter, softened highs, saturation and gentle dropouts remain part of the sound even at minimum wear.</p><p>Keyboard: Space plays/pauses, arrows wind, S stops, E opens/closes, F flips. Your first interaction enables audio. Music continues when switching tabs. Closing or navigating away from this page stops playback.</p><p class="form-hint">An original fictional deck simulation. Recording and complete emulation of a specific physical machine are not included.</p></div></dialog>
-<dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="Close credits">${icon("close")}</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 is an original design. Reference photos, manufacturer logos and product images are not distributed.</p><p><b>MECHANISMS / CC0 1.0</b>Recordings by stecman, Joseph SARDIN / BigSoundBank and Spring Spring. Edited, filtered and looped. <a href="${import.meta.env.BASE_URL}sfx/credits.json" target="_blank" rel="noopener noreferrer">Sources and edits</a> · <a href="${import.meta.env.BASE_URL}licenses/SFX-CC0.txt" target="_blank" rel="noopener noreferrer">Full CC0 license</a></p><p><b>MUSIC / CC0 1.0</b>Six original demo tracks by DURU-AI / uncle-sheepsky, sourced from their public repository and converted to 128 kbps MP3. Original titles, authors and licensing are retained.</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">Music source repository</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">Full music CC0 license</a></p><p>Tape names are original collection titles. Original track names appear in the player and collection. Imported music remains the property of its rights holders.</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub</a></p></div></dialog>
+<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">Enjoy the ritual.</h2></div><button class="close-dialog" aria-label="Close instructions">${icon("close")}</button></div><div class="manual"><p><b>01 / Choose a tape</b>Choose a tape from the collection. The deck stops, opens and loads it automatically.</p><p><b>02 / Press a button</b>PLAY starts playback, PAUSE pauses, REW / F.FWD winds at 12x speed, and STOP stops. The deck clicks to a stop at the end.</p><p><b>03 / Flip the tape</b>Press FLIP to stop, open, turn the tape and close the door. An already open door stays open. Each side remembers its position. Flipping from the end starts the other side at zero. RESET changes only the counter.</p><p><b>04 / Turn it in your hands</b>Drag the case or its turn handle to inspect the sides and back. FRONT brings it home. On the handle, arrow keys rotate and Home returns to the front.</p><p><b>05 / Set the wear</b>Hiss, wow and flutter, softened highs, saturation and gentle dropouts remain part of the sound even at minimum wear.</p><p>Keyboard: Space plays/pauses, arrows wind, S stops, E opens/closes, F flips. Your first interaction enables audio. Music continues when switching tabs. Closing or navigating away from this page stops playback.</p><p class="form-hint">Choose CASE FINISH and TAPE CHARACTER for a different look and feel. Phone/tablet portrait settings live behind the gear button. An original fictional deck simulation; recording is not included.</p></div></dialog>
+<dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="Close credits">${icon("close")}</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 is an original design. Reference photos, manufacturer logos and product images are not distributed.</p><p><b>MECHANISMS / CC0 1.0</b>Recordings by stecman, Joseph SARDIN / BigSoundBank and Spring Spring. Edited, filtered and looped. <a href="${import.meta.env.BASE_URL}sfx/credits.json" target="_blank" rel="noopener noreferrer">Sources and edits</a> · <a href="${import.meta.env.BASE_URL}licenses/SFX-CC0.txt" target="_blank" rel="noopener noreferrer">Full CC0 license</a></p><p><b>LEGACY TONE PROFILES / MIT</b>Light, Medium and Heavy tone targets adapted from YomiPlush’s <a href="https://github.com/yomiplush/youtube-cassette-filter" target="_blank" rel="noopener noreferrer">Cassette Filter</a>. <a href="${import.meta.env.BASE_URL}licenses/LEGACY-FILTER-MIT.txt" target="_blank" rel="noopener noreferrer">MIT notice</a>. No YouTube audio is included.</p><p><b>MUSIC / CC0 1.0</b>Six original demo tracks by DURU-AI / uncle-sheepsky, sourced from their public repository and converted to 128 kbps MP3. Original titles, authors and licensing are retained.</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">Music source repository</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">Full music CC0 license</a></p><p>Tape names are original collection titles. Original track names appear in the player and collection. Imported music remains the property of its rights holders.</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub</a></p></div></dialog>
+<dialog id="settings-curtain" aria-labelledby="settings-heading" data-phase="closed"><div class="curtain-stitch" aria-hidden="true"></div><div class="curtain-content"><div class="eyebrow">NC-85 / A FEW PERSONAL TOUCHES</div><h2 id="settings-heading">Make yourself<br><em>at home.</em></h2><p class="curtain-intro">A little louder. A little more worn.<br>Find your kind of imperfect.</p><div class="curtain-controls"></div><button id="settings-close" aria-label="Back to the deck"><span>BACK TO THE DECK</span>${icon("arrow")}</button><p class="curtain-note">YOUR TAPE KEEPS TURNING.</p></div><div class="curtain-hem" aria-hidden="true"></div></dialog>
 <div class="mobile-dock-shade" aria-hidden="true"></div><div id="toast" role="status" aria-live="polite"></div>`;
+
+selectedSkin = applySkin($(".device-area"), settings.skin);
+$("#case-skin").value = selectedSkin;
+$("#tape-character").value = audio.profile;
+$("#case-skin").onchange = event => {selectedSkin=applySkin($(".device-area"),event.target.value);persist();};
+$("#tape-character").onchange = event => {audio.setProfile(event.target.value);persist();};
+const caseModel = createCaseModel({player:$("#player"), device:$(".device-area"), icon, isBusy:()=>busy || flipping});
+setupSettingsCurtain({button:$("#settings-open"), dialog:$("#settings-curtain"), controls:$(".sound-controls"), closeButton:$("#settings-close")});
 
 // Move the same controls outside the case stacking context on pocket-sized screens.
 // No duplicate buttons/listeners: focus and transport state survive orientation changes.
@@ -110,8 +124,10 @@ if (import.meta.env.MODE !== "selfhost") {
   deck.before(slot); slot.append(deck);
   const fit = () => {
     const landscape = innerHeight <= 500 && innerWidth >= 600;
-    deck.style.width = `${Math.min(landscape ? 660 : 440, slot.clientWidth - 12)}px`;
-    deck.style.height = `${Math.min(760, slot.clientHeight - 12)}px`;
+    const portrait = innerWidth <= 1024 && innerHeight > innerWidth;
+    const width = Math.min(landscape || portrait ? 680 : 440, slot.clientWidth - 12);
+    deck.style.width = `${width}px`;
+    deck.style.height = `${Math.min(portrait ? width * 1.7 + 24 : 760, slot.clientHeight - 12)}px`;
     deck.style.transform = "translate(-50%, -50%)";
   };
   const observer = new ResizeObserver(fit);
@@ -122,7 +138,7 @@ document.addEventListener(
   "click",
   (e) => {
     const button = e.target.closest("button");
-    if (!button || button.disabled || button.matches("[data-action]")) return;
+    if (!button || button.disabled || button.matches("[data-action],.case-grip")) return;
     audio
       .unlock()
       .then(() => audio.sound("click"))
@@ -143,6 +159,8 @@ function persist() {
       positions: transport.snapshot(),
       volume: audio.volume,
       wear: audio.wear,
+      skin: selectedSkin,
+      character: audio.profile,
     })
   )
     message(
@@ -396,6 +414,7 @@ function frameTape() {
   if (rect.top < 110 || rect.bottom > bottom) window.scrollBy(0, rect.top - Math.max(110, (bottom - rect.height)/2));
 }
 async function service(name) {
+  caseModel.home({animate:false});
   if (name !== "door" && !transport.tape) return;
   transport.stop(); audio.setMode("stopped"); persist();
   const controller = new AbortController(), signal = controller.signal, wasOpen = transport.open, width = innerWidth;
@@ -454,7 +473,7 @@ $$(".shelf-trigger").forEach(
 $$(".close-dialog").forEach(
   (b) => (b.onclick = () => b.closest("dialog").close()),
 );
-$$("dialog").forEach((d) =>
+$$("dialog").filter(d => d.id !== "settings-curtain").forEach((d) =>
   d.addEventListener("click", (e) => {
     if (e.target === d) {
       const r = d.getBoundingClientRect();

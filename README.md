@@ -196,3 +196,17 @@ A GitHub Actions example is provided at `docs/ci-check.example.yml`. Copy it to 
 - `src/assets/`: original weathering textures and generated navigation icons.
 - `compose.yml`, `deploy/nginx.conf`: self-hosted static serving.
 - `public/audio/`, `public/sfx/`: audio, credits and integrity manifests.
+
+## Turn the deck, change the finish
+
+Drag the case or its turn handle to inspect its sides, headphone sockets, volume wheel, belt clip and battery cover. The front, back and four edges are real browser-native CSS 3D surfaces; the existing front controls remain native buttons. **FRONT** returns to the operating view. On the turn handle, arrow keys rotate and `Home` restores the front. A drag does not also press the window latch. FLIP/EJECT return the case to the front before servicing the tape.
+
+Five original finishes are included: **Harbor Blue, Silver Line, Midnight Graphite, Signal Red and Ivory Studio**. Each includes original paint wear and exposed-metal patches. No manufacturer logos, reference photos or copied product skins are distributed.
+
+On phones/tablets up to 1024px in portrait, the image gear button lowers a fabric-like settings curtain. **BACK TO THE DECK** or Escape lifts it away. Rotation to landscape restores the same settings controls to the liner. The controls are moved rather than duplicated, values persist, playback continues, and reduced-motion preferences are respected. Horizontal/desktop layouts retain inline settings.
+
+**TAPE CHARACTER** adds optional Light / Home dub, Medium / Street copy and Heavy / Attic find profiles based on tone targets from the creator's [MIT cassette filter](https://github.com/yomiplush/youtube-cassette-filter). The original Archive profile remains the default. These are coloration choices, not measured hardware emulations. The current engine retains its own subtle modulation and separate CC0 mechanics; no audio samples were found or copied from the old project. Pinned sources and measurements: [legacy filter research](docs/research/legacy-filter.md). Original MIT notice: `vendor/youtube-cassette-filter/LICENSE`.
+
+<img src="docs/screenshots/skin-silver.png" alt="Original silver finish" width="240"> <img src="docs/screenshots/case-back.png" alt="Rotated case showing its belt clip and battery cover" width="240"> <img src="docs/screenshots/settings-curtain.png" alt="Portrait settings curtain" width="240">
+
+Regenerate these previews against the development server with `node scripts/screenshots-case.mjs`.
