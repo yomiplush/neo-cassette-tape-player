@@ -32,7 +32,7 @@ test("import persists locally, ends automatically, and can be deleted", async ({
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator("#import-open").click();
   await page.locator("[name=title]").fill("My <Mix>");
   await page.locator("[name=sideA]").setInputFiles({
@@ -43,17 +43,17 @@ test("import persists locally, ends automatically, and can be deleted", async ({
   await page.locator(".import-submit").click();
   await expect(page.locator(".tape-card")).toHaveCount(4);
   await page.reload();
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await expect(page.locator(".tape-card")).toHaveCount(4);
   await expect(page.locator(".tape-card").last()).toContainText("My <Mix>");
   await page.locator(".load-tape").last().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toContainText("PLAY");
   await expect(page.locator("#status")).toHaveText("READY", { timeout: 4000 });
-  await page.getByRole("button", { name: "蓋を開閉" }).click();
-  await page.getByRole("button", { name: "テープを取り出す" }).click();
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open or close door" }).click();
+  await page.getByRole("button", { name: "Eject tape" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".delete-tape").click();
   await expect(page.locator(".tape-card")).toHaveCount(3);
   expect(errors).toEqual([]);
@@ -62,7 +62,7 @@ test("invalid audio reports a recoverable error without adding a tape", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator("#import-open").click();
   await page.locator("[name=title]").fill("Broken");
   await page.locator("[name=sideA]").setInputFiles({
@@ -71,7 +71,7 @@ test("invalid audio reports a recoverable error without adding a tape", async ({
     buffer: Buffer.from("not audio"),
   });
   await page.locator(".import-submit").click();
-  await expect(page.locator("#import-status")).toContainText("再生できない");
+  await expect(page.locator("#import-status")).toContainText("Cannot play");
   await expect(page.locator(".import-submit")).toBeEnabled();
 });
 test("all six demos decode and the player has no horizontal overflow", async ({

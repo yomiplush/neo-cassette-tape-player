@@ -1,73 +1,73 @@
 # NEO CASSETTE — NC-85
 
-**少し不完全な音が、ちょうどいい。**
+**A little imperfection. Just right.**
 
-スマホのブラウザで動く、80年代をイメージしたオリジナルのカセットプレイヤー。サーバー処理・アカウント・外部音楽サービスは不要です。アプリ本体は **MIT**、同梱の6曲は **CC0 1.0** です。
+An original, weathered 1980s cassette player for desktop and mobile browsers. No accounts, backend or external music service required. The application is **MIT licensed**; six included demo tracks and mechanical recordings are **CC0 1.0**.
+
+[Play the demo](https://neo-cassette-tape-player-demo.yomiplush.dev/) · [Creator](https://www.yomiplush.dev/) · [Support](https://github.com/sponsors/yomiplush)
 
 ![NEO NC-85](docs/screenshots/desktop.png)
 
-## できること
+## Features
 
-- FLIPでテープが浮き上がり、厚みを見せながら180度反転して戻る専用アニメーション。動きを減らす設定にも対応。
-- 角の塗装剥げ・日焼け・擦り傷・くすんだネジ・古いシールなど、使い込まれた筐体とテープ。質感は独自SVGで制作。
-- 専用のテープ棚から挿し替え。3本のデモテープに、A/B面それぞれ異なる曲を収録。
-- 再生、一時停止、停止、12倍速の早送り・巻き戻し、蓋の開閉、取り出し、手動のA/B面反転。
-- 再生位置に応じたリール回転・テープ巻量、機械式風カウンターとリセット、端まで来ると自動停止。
-- ヒス、ワウ・フラッター、帯域制限、飽和歪み、軽いドロップアウト。ボタンを押すたびに二段のカチカチ音。巻き取り中はモーター・歯車の脈動・軋み・擦れが連続し、巻量によって音程も変化します。すべてブラウザ内で合成。
-- 劣化量とマスター音量の調整。劣化量を最小にしてもテープの音色は残ります。
-- 自分の音源からテープを作成。名前・A/B面を指定し、IndexedDBに保存。ファイルをサーバーへ送信しません。
-- テープ・面ごとの位置と音量・劣化設定を保存。テープ自体は再読み込み後に棚から選び直します。
-- キーボード操作、ダイアログのフォーカス制御、動きを減らす設定への対応。
+- Aged paint, scuffed plastic, faded labels and worn screws, made with original SVG textures.
+- A dedicated tape collection with three cassettes and six distinct A/B tracks.
+- Play, pause, stop, 12x fast forward/rewind, door controls, eject and manual side switching.
+- Automatic safe sequences: FLIP stops playback, opens the door, turns a thick 3D-style cassette and closes the door. An already open door stays open. EJECT stops playback and opens the door before removing the tape.
+- Animated reels and tape packs, a mechanical-style counter, counter reset and automatic end stop.
+- Tape hiss, wow/flutter, softened highs, saturation and irregular gentle dropouts. Tape character remains at minimum wear.
+- Edited CC0 recordings for winding, button presses, stopping and opening/closing the hatch, with a procedural fallback.
+- Master volume and tape wear controls. Position is remembered separately for each tape and side.
+- Local mixtapes made from your own audio files, stored in IndexedDB without uploading them.
+- Keyboard controls, accessible dialogs, reduced-motion support and mobile layouts.
 
-## 起動・ビルド
+## Development
 
-Node.js **22.12以上**（または20.19以上）を使用してください。推奨はNode 22 LTSです。
+Use Node.js 22.12+ or a supported version matching `package.json` (20.19+ is also supported).
 
 ```bash
 npm ci
 npm run dev
 ```
 
-表示されたURLを開きます。同じLANのスマホからは、開発PCのLAN IPと表示ポートを使用できます。
+Open the displayed URL. A phone on the same LAN can use your development computer's LAN address and port.
 
 ```bash
 npm run build
 npm run preview
 ```
 
-公開ファイルは `dist/` に出力されます。Viteの相対パス設定によりサブディレクトリへの配置にも対応します。`file://` で直接開かず、HTTPサーバーを使用してください。
+The default build outputs `dist/`. Relative asset paths support subdirectory hosting. Serve the files over HTTP rather than opening them with `file://`.
 
-## Cloudflare Pages に手動デプロイ
+## Demo and self-hosted editions
 
-このリポジトリを Pages の Git integration に接続し、以下を設定します。
+Both editions share the same player, audio engine and storage model.
 
-| 設定 | 値 |
+| Edition | Build | Output | Layout |
+| --- | --- | --- | --- |
+| Demo / Pages | `npm run build` or `npm run build:demo` | `dist/` | Showcase and player |
+| Self-hosted | `npm run build:selfhost` | `dist-selfhost/` | Player-focused, fixed mobile transport keys, landscape columns |
+
+The self-hosted layout supports narrow phones, safe areas, scrolling controls, orientation changes and dialogs that fit the viewport. Both editions include the weathered visuals, mechanical sounds and cassette animations.
+
+## Cloudflare Pages
+
+Connect the repository through Pages Git integration with these settings:
+
+| Setting | Value |
 | --- | --- |
 | Production branch | `main` |
 | Framework preset | `None` |
 | Build command | `npm run build` |
 | Build output directory | `dist` |
-| Root directory | リポジトリルート |
+| Root directory | Repository root |
 | Environment variable | `NODE_VERSION=22` |
 
-設定項目の参考：[Cloudflare Pages のビルド設定](https://developers.cloudflare.com/pages/configuration/build-configuration/)、[Node.js バージョンの指定](https://developers.cloudflare.com/pages/configuration/build-image/)。
+See Cloudflare's [build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/) and [build image documentation](https://developers.cloudflare.com/pages/configuration/build-image/). No API keys, Workers or database are required. Direct Upload of the built `dist/` directory is also supported.
 
-APIキー、Workers、データベース、サーバー用の環境変数は不要です。ビルド済み `dist/` をアップロードする Direct Upload でも配置できます。本作業では公開デプロイは行っていません。
+## Self-hosting
 
-## DEMO と Self-hosted の2種類
-
-共通の音声・カセット処理を使い、用途別にビルドを分けています。既定の `npm run build` とCloudflare Pagesの設定は変更していません。
-
-| 配布 | ビルド | 出力 | 特徴 |
-| --- | --- | --- | --- |
-| DEMO / Pages | `npm run build` または `npm run build:demo` | `dist/` | 作品紹介とプレイヤーの元のレイアウト |
-| Self-hosted | `npm run build:selfhost` | `dist-selfhost/` | プレイヤー中心、スマホで操作キーを下部固定、横持ち用の2カラム配置 |
-
-どちらもウェザリング、FLIPアニメーション、機械音の改善を含みます。別々のブランチに複製せず、同じソースの配布プロファイルとして管理します。
-
-## セルフホスト版の起動
-
-Docker + Compose v2以降が使える環境では：
+With Docker and Compose v2 or later:
 
 ```bash
 git clone https://github.com/yomiplush/neo-cassette-tape-player.git
@@ -75,11 +75,11 @@ cd neo-cassette-tape-player
 docker compose up -d --build
 ```
 
-PCで `http://localhost:8080`、同じLANのスマホで `http://サーバーのLANアドレス:8080` を開きます。ポート変更は `NEO_PORT=8090 docker compose up -d --build`。終了は `docker compose down`。
+Open `http://localhost:8080`, or `http://YOUR_SERVER_LAN_ADDRESS:8080` from a phone on the same LAN. Set a different port with `NEO_PORT=8090 docker compose up -d --build`. Stop with `docker compose down`.
 
-Dockerfileは既定で **Self-hosted版** をビルドします。nginxで静的配信し、圧縮・音源のキャッシュ・ヘルスチェックを設定済みです。更新は `git pull` の後に `docker compose up -d --build` を実行してください。
+The Dockerfile builds the self-hosted edition by default and serves static files through nginx with compression, audio caching and a health check. To update, run `git pull` followed by `docker compose up -d --build`.
 
-Dockerを使わない場合は：
+Without Docker:
 
 ```bash
 npm ci
@@ -87,47 +87,52 @@ npm run build:selfhost
 npm run preview:selfhost -- --port 8080
 ```
 
-継続運用では任意の静的Webサーバーで **`dist-selfhost/`** を公開してください。開発時は `npm run dev:selfhost`、DEMOは `npm run dev` です。HTTPSのリバースプロキシの後ろでも利用できます。スマホのLAN HTTPでも取り込み処理が動くよう、secure context専用の `randomUUID` に依存していません。
+For ongoing hosting, serve `dist-selfhost/` with a static web server. Use `npm run dev:selfhost` during development. HTTPS reverse proxies are supported; importing also works over LAN HTTP without depending on secure-context-only `randomUUID`.
 
-**音源の保存先はどちらも端末内のブラウザです。** Self-hosted版はサーバーへのアップロードや端末間同期を追加するものではありません。利用端末・ブラウザ・アクセス元URLを変えると別の保存領域になります。デモ6曲はサーバーから配信します。通常のビルド時に外部から音源を取得しません。
+Standalone Docker commands:
 
-スマホ向けには、320px幅・小さい縦画面・横持ちを対象に、44px以上の操作キー、セーフエリア、スクロール中も使える操作部、回転時の再配置、画面に収まるテープ棚と取り込み画面を用意しています。FLIP時はテープが見える位置に画面を合わせます。途中で画面を離れたり向きを変えたりしたときも操作ロックを解除します。
+```bash
+docker build -t neo-cassette .
+docker run --rm -p 8080:80 neo-cassette
+# Optional demo container:
+docker build --build-arg PLAYER_EDITION=demo -t neo-cassette-demo .
+```
 
-<img src="docs/screenshots/selfhost-mobile.png" alt="Self-hosted版のスマホ画面" width="320">
+**Imported music stays in the browser on the current device.** Self-hosting does not add server uploads or synchronization. A different browser, device or origin uses separate storage. The six demos are served locally; normal builds do not download music from external services.
 
-Docker単独の場合は `docker build -t neo-cassette .`、`docker run --rm -p 8080:80 neo-cassette`。DEMO用のコンテナを明示的に作る場合は `docker build --build-arg PLAYER_EDITION=demo -t neo-cassette-demo .` です。
+<img src="docs/screenshots/selfhost-mobile.png" alt="Self-hosted player on a phone" width="320">
 
-## 使い方
+## Controls
 
-1. **テープ棚 → このテープを入れる**。蓋が開き、テープが入り、閉じます。
-2. **▶** で再生。**Ⅱ** で一時停止・再開、**■** で停止。停止しても位置は戻りません。
-3. **◀◀ / ▶▶** は12倍速の巻き取り。押し続ける必要はありません。**■** で停止します。巻き取り中は音楽ではなくモーター・ヒス・軋みが鳴ります。
-4. 反対側を聴くときは **■ → OPEN → FLIP → CLOSE → ▶**。
-5. **EJECT** は蓋が開いているときに使えます。再生・巻き取り・一時停止中は先に **■** を押してください。
-6. **RESET** はカウンター表示だけをゼロにします。音源の位置は変わりません。
-7. 自分の音源は **テープ棚 → 自分だけのテープを作る**。各面30MB・10分まで。B面省略時はA面の曲を両面に収録。取り出した後、棚の **×** で削除できます。
+1. Open **TAPE BOX** and select **Load this tape**. The deck stops, opens, loads and closes automatically.
+2. **▶** plays, **Ⅱ** pauses/resumes and **■** stops without resetting position.
+3. **◀◀ / ▶▶** winds continuously at 12x speed until stopped or at the end. Winding plays mechanical sound rather than music.
+4. **FLIP A / B** performs the complete safe side-switching sequence. Press play to resume.
+5. **EJECT TAPE** stops, opens and removes the cassette. Choose another from TAPE BOX.
+6. **RESET** changes the counter display only.
+7. Choose **Make your own mixtape** to import audio: up to 30 MB and 10 minutes per side. Omitting side B uses side A on both sides. Eject an imported tape before deleting it with **×** in the collection.
 
-キーボード：`Space` 再生/一時停止、`←` 巻き戻し、`→` 早送り、`S` 停止、`E` 蓋、`F` 裏返す。フォームやダイアログを操作中はショートカットを抑止します。
+Keyboard: `Space` play/pause, `←` rewind, `→` fast forward, `S` stop, `E` door, `F` flip. Shortcuts are suppressed while using forms and dialogs.
 
-## 音声とブラウザについて
+## Audio and browser behavior
 
-最初の操作でAudioContextを有効にします。クリアな音へのバイパスは設けていません。実在の特定機種の回路測定に基づくエミュレータではなく、カセットらしい聴感を作るシミュレーションです。録音・テープへの書き込み・ノイズリダクション規格の再現はありません。
+The first interaction enables Web Audio. This is an expressive simulation of a fictional deck, not a circuit-accurate model of a particular machine. Recording and noise-reduction standards are not implemented.
 
-- 音楽：入力ゲイン → 65Hzハイパス → tanh飽和 → 3.5–7.3kHzローパス → LFO変調ディレイ → ドロップアウト → 再生エンベロープ。
-- 巻き取りは3つの発振器・17.5Hzの歯車変調・帯域ノイズを重ね、巻量と方向で音程を変化。停止では素早くフェードアウト。独立した高域ノイズとモーター音を加算し、機械音とともにマスター音量 → 出力リミッターへ。
-- 約0.73Hzのワウ、7.6Hzのフラッター。4.2秒ごとに軽い音抜け。最小劣化でも非ゼロの帯域制限・ノイズ・変調を維持。
-- デコード済みキャッシュは最大2音源、合計80MiBを超える場合は古い音源を破棄します。ただし単一音源は再生に必要な全体をデコードするため、長いファイルほど一時的なメモリ使用量が増えます。
-- タブ切り替え・画面ロックでは停止する設計です。バックグラウンド再生は保証しません。読み込み中の **■** はキャンセル、通信待ちは25秒でタイムアウトします。
-- MP3/WAV/M4A等の対応はブラウザのデコーダー次第です。SafariではOGG等が使えない場合があります。
-- 取り込み音源は端末間で同期しません。サイトデータ削除・ブラウザの容量整理で消える可能性があります。元の音源ファイルは手元に保管してください。
+- Music passes through input gain, a 65 Hz high-pass, tanh saturation, a 3.5–7.3 kHz low-pass, modulated delay, irregular dropouts and a playback envelope.
+- Electrical hiss and physical mechanism recordings use separate paths. Recorded winding loops change rate slightly with spool position and fade on stopping. Filtered stochastic noise provides a fallback.
+- Slow wow and faster flutter vary with wear. Minimum wear still retains filtering, noise and modulation.
+- Decoded audio is cached for up to two recordings with an 80 MiB budget. A single playing file must still be fully decoded, so longer files use more temporary memory.
+- Leaving the page or locking the screen stops playback. Background playback is not guaranteed. STOP cancels pending loads; network loads time out after 25 seconds.
+- Supported formats depend on the browser's decoder. MP3, WAV and M4A are typical choices; OGG support varies.
+- Browser storage cleanup can delete imported audio. Keep your original files.
 
-## 音源・ライセンス
+## Music and licenses
 
-アプリのソースは [MIT](LICENSE)。デモ音源は **MITへの変更を行わず、原作者のCC0 1.0を保持**しています。MITアプリへの同梱が可能なパブリックドメイン提供音源を選びました。
+Application source: [MIT](LICENSE). Included audio retains its original **CC0 1.0** status rather than being relicensed under MIT.
 
-取得元は [uncle-sheepsky/duru-ai-cc0-bgm](https://github.com/uncle-sheepsky/duru-ai-cc0-bgm)、固定コミット `c801be93348701ac65442769b1841e9ccba67c4e`。6曲とも同リポジトリで **original / pure（外部サンプルなしのコード合成）** と明記された曲です。
+Demo music comes from [uncle-sheepsky/duru-ai-cc0-bgm](https://github.com/uncle-sheepsky/duru-ai-cc0-bgm), pinned to `c801be93348701ac65442769b1841e9ccba67c4e`. The upstream repository identifies all six selected tracks as original/pure code synthesis without external samples.
 
-| テープ | 面 | 収録ファイル | 時間 |
+| Tape | Side | Track file | Duration |
 | --- | --- | --- | --- |
 | AFTER HOURS | A | hyak-ep1-rhythm | 2:40 |
 | AFTER HOURS | B | hyak-ep3-suika | 2:40 |
@@ -136,21 +141,37 @@ Docker単独の場合は `docker build -t neo-cassette .`、`docker run --rm -p 
 | SUNDAY RADIO | A | hyak-ep5-2048 | 2:40 |
 | SUNDAY RADIO | B | duru-ai-ep2-music | 2:00 |
 
-テープ名は本アプリ独自の編集タイトルです。原作者のREADME・CC0全文・生成コードは `vendor/duru-ai/`、配信するCC0全文は `public/licenses/` に同梱。取得元と変換後のSHA-256は `public/audio/manifest.json` に記録しています。容量節約のため元の320kbpsから128kbps MP3へ変換し、再生時の劣化は音声エンジンで加えます。音源合計は約15MBです。
+Tape names are original collection titles. Upstream documentation, license and generation code are preserved in `vendor/duru-ai/`. Served license copies are in `public/licenses/`; sources and SHA-256 hashes are in `public/audio/manifest.json`. The original 320 kbps tracks were converted to 128 kbps MP3, approximately 15 MB total. Tape effects are applied during playback.
 
-再取得・再変換する場合のみ、GitとPythonとffmpegを用意して実行します：
+To reproduce the music conversion, install Git, Python and ffmpeg:
 
 ```bash
 git clone https://github.com/uncle-sheepsky/duru-ai-cc0-bgm.git /tmp/duru-ai
 cd /tmp/duru-ai
 git checkout c801be93348701ac65442769b1841e9ccba67c4e
-# 本リポジトリへ戻ってから：
+# Return to this player repository:
 python scripts/prepare-audio.py /tmp/duru-ai
 ```
 
-実在メーカーの名称・ロゴ・商品画像、参照写真は配布物に含めていません。外部Webフォント、CDN、解析タグも使用しません。開発依存関係の許諾は `THIRD_PARTY_NOTICES.md` を参照してください。
+Mechanical recordings are by stecman, Joseph SARDIN / BigSoundBank and Spring Spring, all CC0. Source links and edits are in `public/sfx/credits.json`, license text in `public/licenses/SFX-CC0.txt`, and measurements/design rationale in [the sound research notes](docs/research/cassette-sound.md). No YouTube audio is redistributed.
 
-## 検証
+Reference photographs, manufacturer logos and product images are not included. No external fonts, CDN or analytics are used. Dependency notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Social previews and generated assets
+
+The demo's initial HTML contains Open Graph metadata and a Twitter large-image card. The 1200×630 cover at `public/social/neo-cassette.png` is rendered from the actual UI by `scripts/social-preview.mjs`. X and Discord control their own preview caches.
+
+For self-hosted social previews, build with your public URL:
+
+```bash
+VITE_SITE_URL=https://your.example npm run build:selfhost
+```
+
+Without this setting, self-hosted builds do not publish the demo's canonical URL.
+
+The top-right generated image icons link to home, source and sponsorship in that order. Originals and exact prompts are preserved in [vendor/generated-icons](vendor/generated-icons/README.md).
+
+## Verification
 
 ```bash
 npm test
@@ -161,26 +182,17 @@ npm run build:demo
 npm run build:selfhost
 ```
 
-FLIPの反転と操作ロック/動きの軽減、連続巻き取り音の実レンダリング、Self-hosted版の320–1024px縦横画面・固定キー・ダイアログ、トランスポートの境界・位置記憶、モバイルの挿入/再生/巻き取り/反転/取り出し、音源取り込み/保存/削除、不正ファイル、6曲の実デコード、画面幅320–1440px、ロード中のキャンセル/画面離脱、Web Audioの実レンダリングを確認します。ブラウザ自動テストはChromiumです。実機iPhone/Androidでの実聴・OS割り込みの網羅検証は別途必要です。
+Checks cover transport boundaries, saved positions, actual Web Audio rendering, recorded sound decoding/retries, imports and deletion, six demo decodes, cancellation, cassette animations, reduced motion, responsive layouts and initial-HTML social metadata. Browser automation uses Chromium. Listening tests and OS interruption behavior on physical iOS/Android devices require separate verification.
 
-GitHub Actions 用の設定例は `docs/ci-check.example.yml` に同梱しています。必要ならご自身で `.github/workflows/check.yml` へコピーして有効にしてください。今回使用したGitHub接続には workflow 権限がないため、自動実行は有効化していません。
+A GitHub Actions example is provided at `docs/ci-check.example.yml`. Copy it to `.github/workflows/check.yml` to enable it; it is not installed as an active workflow.
 
-## 構成
+## Source layout
 
-- `src/transport.js` — 音声やDOMに依存しないトランスポート
-- `src/flip.js` — 二面の立体反転、表示位置と後処理
-- `src/assets/` — 独自の筐体・テープのウェザリングSVG
-- `src/audio.js` — Web Audio、音源キャッシュ、カセット効果と機械音
-- `src/library.js` — デモ定義、設定保存、IndexedDB
-- `src/main.js` — UIと操作、読み込みキャンセル、ライフサイクル
-- `src/style.css` — 独自デザイン、スマホ表示、動きの軽減
-- `compose.yml` / `deploy/nginx.conf` — Self-hosted版の静的配信
-- `public/audio/` — 同梱デモ、ハッシュと時間のマニフェスト
-
-## 共有カードと機械音
-
-DEMO の静的HTMLには OGP と Twitter large-image card を設定しています。共有画像は `public/social/neo-cassette.png`（1200×630）、実際のUIから `scripts/social-preview.mjs` で生成しています。X/Discord 側のキャッシュ更新時期は各サービスに依存します。Self-hosted 版で共有カードを有効にする場合は `VITE_SITE_URL=https://your.example npm run build:selfhost` のように公開URLを指定してください。未指定ならDEMOへのcanonicalは出しません。
-
-巻き取り・停止・押下・蓋の機械音には CC0 の実録音を編集して使用しています。作者・元URL・編集内容は `public/sfx/credits.json`、許諾は `public/licenses/SFX-CC0.txt`、計測と設計の根拠は `docs/research/cassette-sound.md` に保存しています。YouTube音声は配布していません。プレイヤー本体はMIT、同梱楽曲・機械音はCC0です。
-
-右上の画像生成アイコンは、ホーム→ソース→支援の順です。原本と生成プロンプトは `vendor/generated-icons/` に保存しています。
+- `src/transport.js`: DOM-independent cassette transport.
+- `src/flip.js`: cassette geometry, flip/eject animations and cleanup.
+- `src/audio.js`, `src/mechanisms.js`: Web Audio, caching, tape effects and mechanical recordings.
+- `src/library.js`: demo definitions, settings and IndexedDB.
+- `src/main.js`, `src/style.css`: interface, controls, lifecycle and responsive styling.
+- `src/assets/`: original weathering textures and generated navigation icons.
+- `compose.yml`, `deploy/nginx.conf`: self-hosted static serving.
+- `public/audio/`, `public/sfx/`: audio, credits and integrity manifests.

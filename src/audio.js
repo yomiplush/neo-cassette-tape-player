@@ -15,7 +15,7 @@ export class CassetteAudio {
   }
   create() {
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) throw new Error("このブラウザは Web Audio に対応していません。");
+    if (!Ctx) throw new Error("This browser does not support Web Audio.");
     this.ctx = new Ctx();
     const c = this.ctx;
     this.master = c.createGain();
@@ -146,7 +146,7 @@ export class CassetteAudio {
     else {
       const res = await fetch(side.url, { signal });
       if (!res.ok)
-        throw new Error("音源を読み込めませんでした。接続を確認してください。");
+        throw new Error("Could not load audio. Check your connection.");
       data = await res.arrayBuffer();
     }
     return this.decode(side.key || side.url, data);

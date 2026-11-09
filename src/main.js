@@ -51,33 +51,33 @@ const cassette = (mini = false) =>
   `<div class="cassette ${mini ? "mini" : ""}"><i class="tape-screw tl"></i><i class="tape-screw tr"></i><i class="tape-screw bl"></i><i class="tape-screw br"></i><div class="tape-label"><div class="label-top"><span class="tape-side">A</span><span>NEO SOUND ARCHIVE</span><span>STEREO</span></div><strong class="tape-title">YOUR NEXT MEMORY</strong><div class="label-rule"></div><div class="tape-window"><div class="spool left-spool"><div class="reel"></div></div><div class="tape-bridge"></div><div class="spool right-spool"><div class="reel"></div></div></div><div class="label-bottom"><span>LOW NOISE / HIGH FEELING</span><b>TYPE I</b></div></div><div class="cassette-foot"><i></i><span>● &nbsp; ▪ &nbsp; ●</span><i></i></div></div>`;
 
 $("#app").innerHTML = `
-<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE ホーム">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><nav class="creator-links" aria-label="作者のリンク"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush 公式サイト" title="YomiPlush 公式サイト"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub リポジトリ" title="GitHub リポジトリ"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="GitHub Sponsors で応援する" title="GitHub Sponsors で応援する"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
+<header class="site-header"><a class="wordmark" href="./" aria-label="NEO CASSETTE home">NEO<span>CASSETTE</span></a><span class="header-note">ANALOG FEELING. DIGITAL SOUL.</span><nav class="creator-links" aria-label="Creator links"><a href="https://www.yomiplush.dev/" target="_blank" rel="noopener noreferrer" aria-label="YomiPlush website" title="YomiPlush website"><img src="${homeIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository" title="GitHub repository"><img src="${repositoryIcon}" width="32" height="32" alt="" decoding="async"></a><a href="https://github.com/sponsors/yomiplush" target="_blank" rel="noopener noreferrer" aria-label="Support on GitHub Sponsors" title="Support on GitHub Sponsors"><img src="${sponsorIcon}" width="32" height="32" alt="" decoding="async"></a></nav></header>
 <main>
- <section class="intro"><div><div class="eyebrow"><span class="tiny-dot"></span> PERSONAL STEREO / EST. 1985</div><h1>少し不完全な音が、<br><em>ちょうどいい。</em></h1></div><p>テープを選ぶ。ボタンを押す。<br>ノイズも、揺らぎも、あの頃のまま。<br><span>A little hiss. A lot of feeling.</span></p></section>
- <section class="listening-space" aria-label="カセットプレイヤー">
+ <section class="intro"><div><div class="eyebrow"><span class="tiny-dot"></span> PERSONAL STEREO / EST. 1985</div><h1>A little imperfection.<br><em>Just right.</em></h1></div><p>Pick a tape. Press play.<br>The hiss. The wobble. The memories.<br><span>A little hiss. A lot of feeling.</span></p></section>
+ <section class="listening-space" aria-label="Cassette player">
  <div class="device-area"><div class="device-top"><span>PHONES <span class="jack">●</span></span><div class="top-ridges"></div><span>DC 3V <b>⊖</b></span></div>
  <div class="player" id="player">
   <i class="case-screw tl"></i><i class="case-screw tr"></i><i class="case-screw bl"></i><i class="case-screw br"></i>
   <div class="device-brand"><div class="neo-logo">NEO<span>PORTABLE CASSETTE PLAYER</span></div><div class="model-number">NC-85<span>STEREO</span></div></div>
-  <div class="case-topline"><button class="shelf-trigger case-shelf" aria-label="テープ棚を開く">TAPE BOX <span class="count">03</span></button><span id="door-state">DOOR LATCHED</span></div>
-  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="カセット窓の開閉" title="窓を押して開閉"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><span>↗ OPEN</span></div></div><div class="door-edge"></div></div>
-  <div class="readout"><div class="counter-wrap"><span class="micro-label">TAPE COUNTER</span><div class="counter-line"><output id="counter">000</output><button id="reset-counter" aria-label="カウンターをリセット">RESET</button></div></div><div class="signal-wrap"><div class="signal-label"><span class="led" id="led"></span><span id="status" role="status">NO TAPE</span></div><div class="vu-meter" aria-label="音量レベル">${"<i></i>".repeat(12)}</div><div class="vu-scale"><span>−20</span><span>−10</span><span>0</span><span>+3</span></div></div></div>
- <div class="deck-actions case-controls"><button data-action="door" aria-label="蓋を開閉">⏏ <span>OPEN / CLOSE</span></button><button data-action="flip" aria-label="A/B面を裏返す">↻ <span>FLIP A / B</span></button><button data-action="eject" aria-label="テープを取り出す">↗ <span>EJECT TAPE</span></button></div>
+  <div class="case-topline"><button class="shelf-trigger case-shelf" aria-label="Open tape collection">TAPE BOX <span class="count">03</span></button><span id="door-state">DOOR LATCHED</span></div>
+  <div class="door-surround"><div class="door" id="door"><div class="window-top"><span>PRECISION TAPE TRANSPORT</span><span class="direction">▸</span></div><div class="deck-window"><div class="empty-deck"><span>○ &nbsp; ○</span><small>OPEN. INSERT. PLAY.</small></div><div id="loaded-tape">${cassette()}</div><button class="window-latch" data-action="door" aria-label="Toggle cassette window" title="Press the window to open or close"></button></div><div class="door-bottom"><span>FULL AUTO STOP</span><span>↗ OPEN</span></div></div><div class="door-edge"></div></div>
+  <div class="readout"><div class="counter-wrap"><span class="micro-label">TAPE COUNTER</span><div class="counter-line"><output id="counter">000</output><button id="reset-counter" aria-label="Reset counter">RESET</button></div></div><div class="signal-wrap"><div class="signal-label"><span class="led" id="led"></span><span id="status" role="status">NO TAPE</span></div><div class="vu-meter" aria-label="Audio level">${"<i></i>".repeat(12)}</div><div class="vu-scale"><span>−20</span><span>−10</span><span>0</span><span>+3</span></div></div></div>
+ <div class="deck-actions case-controls"><button data-action="door" aria-label="Open or close door">⏏ <span>OPEN / CLOSE</span></button><button data-action="flip" aria-label="Flip side A/B">↻ <span>FLIP A / B</span></button><button data-action="eject" aria-label="Eject tape">↗ <span>EJECT TAPE</span></button></div>
   <div class="transport-labels"><span>REW</span><span>F.FWD</span><span>STOP</span><span>PLAY</span><span>PAUSE</span></div>
-  <div class="transport"><button data-action="rewind" aria-label="巻き戻し"><span>◀◀</span></button><button data-action="forward" aria-label="早送り"><span>▶▶</span></button><button data-action="stop" aria-label="停止"><span>■</span></button><button data-action="play" class="play-key" aria-label="再生"><span>▶</span></button><button data-action="pause" aria-label="一時停止"><span>Ⅱ</span></button></div>
+  <div class="transport"><button data-action="rewind" aria-label="Rewind"><span>◀◀</span></button><button data-action="forward" aria-label="Fast forward"><span>▶▶</span></button><button data-action="stop" aria-label="Stop"><span>■</span></button><button data-action="play" class="play-key" aria-label="Play"><span>▶</span></button><button data-action="pause" aria-label="Pause"><span>Ⅱ</span></button></div>
   <div class="device-footer"><span class="stereo-bars">▥</span><span>FEEL THE TAPE.</span><span class="serial">N° 008519</span></div>
  </div><div class="device-bottom"><span>HIGH FIDELITY? &nbsp; NOT QUITE.</span><div class="bottom-ridges"></div></div><div class="device-shadow"></div>
 
  </div>
- <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">▱</span><h2>どのテープにする？</h2><p>棚から一本、選んでみてください。<br>今日の気分に合う音があるはず。</p><button class="shelf-trigger primary">テープを選ぶ <span>↗</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="side-row"><span>SIDE <b id="side-label">A</b></span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><p class="tape-note">曲を飛ばす代わりに、巻き戻す。<br>反対の面は、蓋を開けて裏返して。</p></div>
- <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="プレイヤーの使い方">ⓘ</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="マスター音量"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>テープのくたびれ具合</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="テープの劣化量"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div></div>
+ <aside class="liner"><div class="liner-heading"><span>NOW ON DECK</span><span class="live-dot"></span></div><div class="liner-empty" id="liner-empty"><span class="outline-tape">▱</span><h2>What is on your tape?</h2><p>Pick one from the collection.<br>Find a sound for your state of mind.</p><button class="shelf-trigger primary">Choose a tape <span>↗</span></button></div><div id="liner-loaded" hidden><div class="track-category" id="track-category"></div><h2 id="current-title"></h2><p class="liner-subtitle" id="current-subtitle"></p><div class="side-row"><span>SIDE <b id="side-label">A</b></span><span id="track-time">00:00 / 00:00</span></div><div class="position-track"><div id="position-fill"></div></div><div class="track-info"><strong id="track-name"></strong><span id="track-author"></span></div><p class="tape-note">Rewind instead of skipping.<br>Open the door and flip to the other side.</p></div>
+ <div class="sound-controls"><div class="control-heading"><h3>THE ANALOG TOUCH</h3><button id="about-open" aria-label="Player instructions">ⓘ</button></div><label class="slider-label" for="volume"><span>VOLUME</span><output id="volume-value">65</output></label><input type="range" id="volume" min="0" max="100" value="${audio.volume * 100}" aria-label="Master volume"><div class="slider-label wear-label"><label for="wear">TAPE WEAR <span>A little wear and tear</span></label><output id="wear-value">50</output></div><input type="range" id="wear" min="0" max="100" value="${audio.wear * 100}" aria-label="Tape wear"><div class="wear-scale"><span>WELL-LOVED</span><span>FOUND IN THE ATTIC</span></div><div class="sound-tags"><span>HISS</span><span>WOW & FLUTTER</span><span>WARMTH</span></div></div>
  </aside></section>
- <section class="bottom-note"><span>01 — PUT THE WORLD ON PAUSE.</span><p>巻き戻した時間まで、好きになる。</p><span>DESIGNED FOR SLOW LISTENING.</span></section>
+ <section class="bottom-note"><span>01 — PUT THE WORLD ON PAUSE.</span><p>Even the rewinding becomes part of the music.</p><span>DESIGNED FOR SLOW LISTENING.</span></section>
 </main><footer class="site-footer"><span>NEO CASSETTE <span>— A SMALL TRIP BACK.</span></span><button id="credits-open">CREDITS & LICENSES ↗</button></footer>
-<dialog id="library-dialog" aria-labelledby="library-heading"><div class="dialog-header"><div><div class="eyebrow">THE COLLECTION</div><h2 id="library-heading">あなたのテープ棚<span id="tape-total">03 TAPES</span></h2></div><button class="close-dialog" aria-label="テープ棚を閉じる">×</button></div><p class="dialog-intro">一本選んで、今日のサウンドトラックに。</p><div id="tape-grid" class="tape-grid"></div><button id="import-open" class="import-button"><b>＋</b><span>自分だけのテープを作る<small>音源ファイルから A / B 面を作成</small></span><span>↗</span></button><p class="library-note">DEMO COLLECTION · 6 ORIGINAL TRACKS BY DURU-AI · CC0<br>取り込んだ音源は、このブラウザの中だけに保存されます。</p></dialog>
-<dialog id="import-dialog" aria-labelledby="import-heading"><form id="import-form"><div class="dialog-header"><div><div class="eyebrow">MAKE A MIXTAPE</div><h2 id="import-heading">音楽に、居場所を。</h2></div><button type="button" class="close-dialog" aria-label="取り込み画面を閉じる">×</button></div><p class="dialog-intro">A面とB面に一曲ずつ。あなたの音源を一本のテープに。</p><label class="form-label">テープの名前<input name="title" maxlength="40" placeholder="例：帰り道のミックス" required></label><label class="form-label file-label">SIDE A <span>必須</span><input name="sideA" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" required></label><label class="form-label file-label">SIDE B <span>省略するとA面を両面に収録</span><input name="sideB" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"></label><p class="form-hint">各面 30 MB・10分まで。MP3 / WAV / M4A など、ブラウザが再生できる形式。サーバーへの送信はありません。</p><button class="primary import-submit" type="submit">テープを作る <span>↗</span></button><p id="import-status" role="status"></p></form></dialog>
-<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">少し、手間を楽しもう。</h2></div><button class="close-dialog" aria-label="説明を閉じる">×</button></div><div class="manual"><p><b>01 / テープを選ぶ</b>棚から選ぶと、蓋が開いてテープが入ります。走行中の交換操作も、先に自動で停止してから行います。</p><p><b>02 / ボタンを押す</b>▶ で再生。Ⅱ で一時停止。◀◀ / ▶▶ は12倍速で巻き取り、■ で停止。終端ではカチッと自動停止します。</p><p><b>03 / 裏返す</b>本体の FLIP 一回で停止→開く→立体反転→閉じる。開いた状態からの FLIP は開いたまま戻します。A/B面ごとの位置を記憶します。RESET はカウンター表示だけをゼロにします。</p><p><b>04 / くたびれ具合を選ぶ</b>ヒス、音の揺れ、高域の丸み、歪み、軽い音抜けを再現。劣化量が最小でもテープらしさは残ります。</p><p>キーボード：Space 再生 / 一時停止、← / → 巻き取り、S 停止、E 蓋、F 裏返す。スマホでは最初の操作で音声を有効にします。画面を離れると停止し、戻ったら手動で再生できます。</p><p class="form-hint">架空の機種を表現したシミュレーションです。録音機能や実在機の全機能を再現するものではありません。</p></div></dialog>
-<dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="クレジットを閉じる">×</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 は独自のデザインです。参照写真、実在メーカーのロゴ、製品画像は同梱していません。</p><p><b>MECHANISMS / CC0 1.0</b>実録音: stecman、Joseph SARDIN / BigSoundBank、Spring Spring。切り出し・フィルター・ループ加工。<a href="${import.meta.env.BASE_URL}sfx/credits.json" target="_blank" rel="noopener noreferrer">出典と編集内容 ↗</a> · <a href="${import.meta.env.BASE_URL}licenses/SFX-CC0.txt" target="_blank" rel="noopener noreferrer">CC0全文 ↗</a></p><p><b>MUSIC / CC0 1.0</b>6曲のデモ音源は DURU-AI / uncle-sheepsky のオリジナル楽曲。公開リポジトリから取得し、128 kbps MP3 に変換しています。曲名・作者・元の許諾を保持しています。</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">音源のソースリポジトリ ↗</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">音源の CC0 ライセンス全文 ↗</a></p><p>テープのタイトルは、このプレイヤー独自の編集タイトルです。収録曲の正式タイトルは再生画面と棚に表示しています。取り込み音源の権利は元の権利者に帰属します。</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub ↗</a></p></div></dialog>
+<dialog id="library-dialog" aria-labelledby="library-heading"><div class="dialog-header"><div><div class="eyebrow">THE COLLECTION</div><h2 id="library-heading">Your tape collection<span id="tape-total">03 TAPES</span></h2></div><button class="close-dialog" aria-label="Close tape collection">×</button></div><p class="dialog-intro">Pick a tape for today’s soundtrack.</p><div id="tape-grid" class="tape-grid"></div><button id="import-open" class="import-button"><b>＋</b><span>Make your own mixtape<small>Create sides A / B from audio files</small></span><span>↗</span></button><p class="library-note">DEMO COLLECTION · 6 ORIGINAL TRACKS BY DURU-AI · CC0<br>Imported audio stays in this browser.</p></dialog>
+<dialog id="import-dialog" aria-labelledby="import-heading"><form id="import-form"><div class="dialog-header"><div><div class="eyebrow">MAKE A MIXTAPE</div><h2 id="import-heading">Give your music a home.</h2></div><button type="button" class="close-dialog" aria-label="Close import dialog">×</button></div><p class="dialog-intro">One track per side. Turn your audio into a mixtape.</p><label class="form-label">Tape name<input name="title" maxlength="40" placeholder="Example: The way home" required></label><label class="form-label file-label">SIDE A <span>Required</span><input name="sideA" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" required></label><label class="form-label file-label">SIDE B <span>Optional; uses side A when omitted</span><input name="sideB" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"></label><p class="form-hint">Up to 30 MB and 10 minutes per side. Use MP3, WAV, M4A or another browser-supported format. Files are never uploaded.</p><button class="primary import-submit" type="submit">Create tape <span>↗</span></button><p id="import-status" role="status"></p></form></dialog>
+<dialog id="about-dialog" aria-labelledby="about-heading"><div class="dialog-header"><div><div class="eyebrow">OWNER'S MANUAL</div><h2 id="about-heading">Enjoy the ritual.</h2></div><button class="close-dialog" aria-label="Close instructions">×</button></div><div class="manual"><p><b>01 / Choose a tape</b>Choose a tape from the collection. The deck stops, opens and loads it automatically.</p><p><b>02 / Press a button</b>▶ plays, Ⅱ pauses, ◀◀ / ▶▶ winds at 12x speed, and ■ stops. The deck clicks to a stop at the end.</p><p><b>03 / Flip the tape</b>Press FLIP to stop, open, turn the tape and close the door. An already open door stays open. Each side remembers its position. RESET changes only the counter.</p><p><b>04 / Set the wear</b>Hiss, wow and flutter, softened highs, saturation and gentle dropouts remain part of the sound even at minimum wear.</p><p>Keyboard: Space plays/pauses, arrows wind, S stops, E opens/closes, F flips. Your first interaction enables audio. Leaving the page stops playback; resume manually when you return.</p><p class="form-hint">An original fictional deck simulation. Recording and complete emulation of a specific physical machine are not included.</p></div></dialog>
+<dialog id="credits-dialog" aria-labelledby="credits-heading"><div class="dialog-header"><div><div class="eyebrow">MADE WITH RESPECT</div><h2 id="credits-heading">Credits & licenses</h2></div><button class="close-dialog" aria-label="Close credits">×</button></div><div class="manual"><p><b>PLAYER / MIT</b>© 2026 YomiPlush. NEO NC-85 is an original design. Reference photos, manufacturer logos and product images are not distributed.</p><p><b>MECHANISMS / CC0 1.0</b>Recordings by stecman, Joseph SARDIN / BigSoundBank and Spring Spring. Edited, filtered and looped. <a href="${import.meta.env.BASE_URL}sfx/credits.json" target="_blank" rel="noopener noreferrer">Sources and edits ↗</a> · <a href="${import.meta.env.BASE_URL}licenses/SFX-CC0.txt" target="_blank" rel="noopener noreferrer">Full CC0 license ↗</a></p><p><b>MUSIC / CC0 1.0</b>Six original demo tracks by DURU-AI / uncle-sheepsky, sourced from their public repository and converted to 128 kbps MP3. Original titles, authors and licensing are retained.</p><p><a href="https://github.com/uncle-sheepsky/duru-ai-cc0-bgm" target="_blank" rel="noopener noreferrer">Music source repository ↗</a><br><a href="${import.meta.env.BASE_URL}licenses/DURU-CC0.txt" target="_blank" rel="noopener noreferrer">Full music CC0 license ↗</a></p><p>Tape names are original collection titles. Original track names appear in the player and collection. Imported music remains the property of its rights holders.</p><p><a href="https://github.com/yomiplush/neo-cassette-tape-player" target="_blank" rel="noopener noreferrer">NEO CASSETTE / GitHub ↗</a></p></div></dialog>
 <div class="mobile-dock-shade" aria-hidden="true"></div><div id="toast" role="status" aria-live="polite"></div>`;
 
 // Move the same controls outside the case stacking context on pocket-sized screens.
@@ -128,7 +128,7 @@ function persist() {
     })
   )
     message(
-      "再生位置を保存できませんでした。ブラウザの保存容量を確認してください。",
+      "Could not save playback position. Check browser storage.",
     );
 }
 function renderShelf() {
@@ -138,7 +138,7 @@ function renderShelf() {
   $("#tape-grid").innerHTML = tapes
     .map(
       (t) =>
-        `<article class="tape-card" style="--tape-color:${t.color}"><div class="sleeve"><div class="sleeve-number">NEO / ${esc(t.number)}</div>${cassette(true)}<div class="sleeve-caption">A LITTLE HISS. A LOT OF FEELING.</div></div><div class="tape-card-title"><h3>${esc(t.title)}</h3><span>${time(t.sides.A.duration + t.sides.B.duration)}</span></div><p>A · ${esc(t.sides.A.title)}<br>B · ${esc(t.sides.B.title)}</p><div class="card-actions"><button class="load-tape" data-id="${esc(t.id)}">${transport.tape?.id === t.id ? "挿入済み" : "このテープを入れる"} <span>↗</span></button>${t.imported ? `<button class="delete-tape" data-id="${esc(t.id)}" aria-label="${esc(t.title)}を削除">×</button>` : ""}</div></article>`,
+        `<article class="tape-card" style="--tape-color:${t.color}"><div class="sleeve"><div class="sleeve-number">NEO / ${esc(t.number)}</div>${cassette(true)}<div class="sleeve-caption">A LITTLE HISS. A LOT OF FEELING.</div></div><div class="tape-card-title"><h3>${esc(t.title)}</h3><span>${time(t.sides.A.duration + t.sides.B.duration)}</span></div><p>A · ${esc(t.sides.A.title)}<br>B · ${esc(t.sides.B.title)}</p><div class="card-actions"><button class="load-tape" data-id="${esc(t.id)}">${transport.tape?.id === t.id ? "Loaded" : "Load this tape"} <span>↗</span></button>${t.imported ? `<button class="delete-tape" data-id="${esc(t.id)}" aria-label="${esc(t.title)}: delete">×</button>` : ""}</div></article>`,
     )
     .join("");
   $$("#tape-grid .cassette").forEach((el, i) => {
@@ -165,7 +165,7 @@ function renderShelf() {
           await new Promise((r) => setTimeout(r, 320));
           transport.door();
           audio.sound("door");
-          message("テープをセットしました。▶ で再生。");
+          message("Tape loaded. Press ▶ to play.");
           persist();
         })),
   );
@@ -174,13 +174,13 @@ function renderShelf() {
       (b.onclick = () =>
         action(async () => {
           if (transport.tape?.id === b.dataset.id)
-            return message("取り出してから削除してください。");
+            return message("Eject this tape before deleting it.");
           await deleteTape(b.dataset.id);
           tapes = tapes.filter((t) => t.id !== b.dataset.id);
           delete transport.memory[b.dataset.id];
           persist();
           renderShelf();
-          message("テープを棚から削除しました。");
+          message("Tape removed from the collection.");
         })),
   );
 }
@@ -286,7 +286,7 @@ async function action(fn) {
     if (operation === generation) {
       transport.stop();
       audio.setMode("stopped");
-      message(e.message || "操作できませんでした。もう一度お試しください。");
+      message(e.message || "Could not complete the operation. Please try again.");
     }
   } finally {
     if (operation === generation) {
@@ -297,9 +297,9 @@ async function action(fn) {
 }
 async function play() {
   if (!transport.tape || transport.open)
-    return message("テープを入れて、蓋を閉じてください。");
+    return message("Load a tape and close the door.");
   if (transport.position >= transport.duration)
-    return message("テープの終端です。巻き戻すか、裏返してください。");
+    return message("End of tape. Rewind or flip to the other side.");
   const side = transport.tape.sides[transport.side];
   transport.stop();
   audio.setMode("stopped");
@@ -311,7 +311,7 @@ async function play() {
     () =>
       controller.abort(
         new Error(
-          "読み込みがタイムアウトしました。接続を確認して、もう一度再生してください。",
+          "Loading timed out. Check your connection and try playing again.",
         ),
       ),
     25000,
@@ -396,7 +396,7 @@ async function service(name) {
     } else {
       render(); await ejectCassette({element:$("#loaded-tape .cassette"),signal,reducedMotion:matchMedia("(prefers-reduced-motion: reduce)").matches,
         commit:()=>{transport.eject();counterZero=0;audio.sound("seat");persist();render();} });
-      if(!signal.aborted) message("テープを取り出しました。本体の TAPE BOX から次の一本を。");
+      if(!signal.aborted) message("Tape ejected. Choose your next tape from TAPE BOX.");
     }
   } finally { window.removeEventListener("resize",resized); flipping=false;servicePhase="";flipController=null; }
 }
@@ -477,7 +477,7 @@ $("#import-form").onsubmit = async (e) => {
     submit = $(".import-submit");
   busy = true;
   submit.disabled = true;
-  status.textContent = "音源を確認しています…";
+  status.textContent = "Checking audio…";
   try {
     await audio.unlock();
     const a = form.elements.sideA.files[0],
@@ -490,18 +490,18 @@ $("#import-form").onsubmit = async (e) => {
     ]) {
       if (!file || file.size > 30 * 1024 * 1024 || file.size === 0)
         throw new Error(
-          "各面は 0 バイトより大きく、30 MB 以下の音源を選んでください。",
+          "Choose a nonempty audio file up to 30 MB per side.",
         );
       let decoded;
       try {
         decoded = await audio.decode(`${id}-${side}`, await file.arrayBuffer());
       } catch {
         throw new Error(
-          "再生できない音源です。MP3 / WAV / M4A など別の形式を試してください。",
+          "Cannot play this audio. Try MP3, WAV, M4A or another supported format.",
         );
       }
       if (decoded.duration > 600)
-        throw new Error("各面10分までの音源を選んでください。");
+        throw new Error("Choose audio up to 10 minutes per side.");
       sides[side] = {
         title: file.name.replace(/\.[^.]+$/, ""),
         duration: decoded.duration,
@@ -510,11 +510,11 @@ $("#import-form").onsubmit = async (e) => {
       };
     }
     const title = form.elements.title.value.trim();
-    if (!title) throw new Error("テープの名前を入力してください。");
+    if (!title) throw new Error("Enter a tape name.");
     const tape = {
       id,
       title,
-      subtitle: "あなただけの、一本。",
+      subtitle: "A mixtape of your own.",
       number: "MY",
       color: "#78668b",
       genre: "PERSONAL MIXTAPE",
@@ -527,7 +527,7 @@ $("#import-form").onsubmit = async (e) => {
       await storeTape(tape);
     } catch {
       throw new Error(
-        "保存できませんでした。ブラウザの保存容量やプライベートモードを確認してください。",
+        "Could not save. Check browser storage and private browsing settings.",
       );
     }
     tapes.push(tape);
@@ -536,7 +536,7 @@ $("#import-form").onsubmit = async (e) => {
     $("#import-dialog").close();
     renderShelf();
     $("#library-dialog").showModal();
-    message("あなただけのテープができました。");
+    message("Your mixtape is ready.");
   } catch (err) {
     status.textContent = err.message;
   } finally {
@@ -572,7 +572,7 @@ function advance() {
   const ended = transport.tick(audio.delta());
   if (ended) {
     audio.setMode("stopped");
-    message("カチッ。テープの端まで来ました。");
+    message("Click. End of tape.");
     persist();
   }
   return ended;
@@ -624,13 +624,13 @@ setInterval(() => {
       }
   } catch {
     message(
-      "デモ音源の一覧を読み込めませんでした。再読み込みをお試しください。",
+      "Could not load the demo collection. Please reload.",
     );
   }
   try {
     tapes.push(...(await getImports()));
   } catch {
-    message("取り込み音源の保存機能を利用できません。デモ曲は再生できます。");
+    message("Local audio storage is unavailable. Demo tracks are still playable.");
   }
   renderShelf();
   render();

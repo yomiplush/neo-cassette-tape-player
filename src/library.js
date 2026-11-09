@@ -3,7 +3,7 @@ export const demos = [
   {
     id: "neon",
     title: "AFTER HOURS",
-    subtitle: "街が眠っても、テープは回る。",
+    subtitle: "The city sleeps. The tape keeps turning.",
     color: "#d2683c",
     number: "01",
     genre: "ARCADE / ELECTRONIC",
@@ -15,7 +15,7 @@ export const demos = [
   {
     id: "orbit",
     title: "OUTER SIGNAL",
-    subtitle: "遠い軌道から届く、小さな音。",
+    subtitle: "Small signals from a distant orbit.",
     color: "#547e76",
     number: "02",
     genre: "SPACE / SYNTH",
@@ -27,7 +27,7 @@ export const demos = [
   {
     id: "daylight",
     title: "SUNDAY RADIO",
-    subtitle: "何もしない午後のために。",
+    subtitle: "For an afternoon with nothing to do.",
     color: "#bd9148",
     number: "03",
     genre: "CODE / GROOVE",

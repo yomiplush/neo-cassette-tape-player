@@ -27,7 +27,7 @@ test("self-hosted edition keeps large transport keys within phone viewports", as
       ),
       `${width}x${height}`,
     ).toBe(true);
-    for (const name of ["停止", "巻き戻し", "早送り", "再生", "一時停止"]) {
+    for (const name of ["Stop", "Rewind", "Fast forward", "Play", "Pause"]) {
       const box = await page
         .getByRole("button", { name, exact: true })
         .boundingBox();
@@ -38,17 +38,17 @@ test("self-hosted edition keeps large transport keys within phone viewports", as
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toContainText("PLAY");
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const box = await page
-    .getByRole("button", { name: "停止", exact: true })
+    .getByRole("button", { name: "Stop", exact: true })
     .boundingBox();
   expect(box.y + box.height).toBeLessThanOrEqual(844);
-  await page.getByRole("button", { name: "停止", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
   await expect(page.locator("#status")).toHaveText("READY");
   expect(errors).toEqual([]);
 });
@@ -57,7 +57,7 @@ test("self-hosted drawers fit a narrow phone and rotate without overflowing", as
 }) => {
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   let box = await page.locator("#library-dialog").boundingBox();
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(320);
@@ -67,6 +67,6 @@ test("self-hosted drawers fit a narrow phone and rotate without overflowing", as
   box = await page.locator("#import-dialog").boundingBox();
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.y + box.height).toBeLessThanOrEqual(375);
-  await page.getByRole("button", { name: "取り込み画面を閉じる" }).click();
+  await page.getByRole("button", { name: "Close import dialog" }).click();
   await expect(page.locator("#import-dialog")).not.toBeVisible();
 });

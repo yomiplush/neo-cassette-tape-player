@@ -4,22 +4,22 @@ test("insert, play, pause, wind, flip and eject on a phone", async ({
 }) => {
   await page.goto("/");
   await expect(page.locator("#status")).toContainText("NO TAPE");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toContainText("READY");
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toContainText("PLAY");
   await page.waitForTimeout(1400);
-  await page.getByRole("button", { name: "一時停止", exact: true }).click();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(page.locator("#status")).toContainText("PAUSE");
-  await page.getByRole("button", { name: "停止", exact: true }).click();
-  await page.getByRole("button", { name: "早送り", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await page.getByRole("button", { name: "Fast forward", exact: true }).click();
   await expect(page.locator("#status")).toContainText("FF");
-  await page.getByRole("button", { name: "停止", exact: true }).click();
-  await page.getByRole("button", { name: "蓋を開閉", exact: true }).click();
-  await page.getByRole("button", { name: "A/B面を裏返す" }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await page.getByRole("button", { name: "Open or close door", exact: true }).click();
+  await page.getByRole("button", { name: "Flip side A/B" }).click();
   await expect(page.locator("#side-label")).toHaveText("B");
-  await page.getByRole("button", { name: "テープを取り出す" }).click();
+  await page.getByRole("button", { name: "Eject tape" }).click();
   await expect(page.locator("#status")).toContainText("NO TAPE");
   expect(
     await page.evaluate(
@@ -37,10 +37,10 @@ test("leaving during a delayed audio load never starts hidden playback", async (
     await route.continue();
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toHaveText("LOADING…");
   await page.evaluate(() => {
     Object.defineProperty(document, "hidden", {
@@ -63,17 +63,17 @@ test("STOP cancels a pending request and permits another tape immediately", asyn
     await route.continue().catch(() => {});
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toHaveText("LOADING…");
   await expect(
-    page.getByRole("button", { name: "停止", exact: true }),
+    page.getByRole("button", { name: "Stop", exact: true }),
   ).toBeEnabled();
-  await page.getByRole("button", { name: "停止", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").nth(1).click();
   await expect(page.locator("#current-title")).toHaveText("OUTER SIGNAL");
   release();
@@ -88,10 +88,10 @@ test("keyboard S cancels loading even while the play button has focus", async ({
     await route.continue().catch(() => {});
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toHaveText("LOADING…");
   await page.keyboard.press("s");
   await expect(page.locator("#status")).toHaveText("READY");
@@ -105,35 +105,35 @@ test("stalled audio times out with an actionable error", async ({ page }) => {
     await route.continue().catch(() => {});
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
   await page.clock.install();
-  await page.getByRole("button", { name: "再生", exact: true }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator("#status")).toHaveText("LOADING…");
   await page.clock.fastForward(26000);
   await expect(page.locator("#status")).toHaveText("READY");
-  await expect(page.locator("#toast")).toContainText("タイムアウト");
+  await expect(page.locator("#toast")).toContainText("timed out");
   release();
 });
 test("FLIP lifts and turns the tape once, locks controls, and settles on the reverse face", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "蓋を開閉" }).click();
-  await page.getByRole("button", { name: "A/B面を裏返す" }).click();
+  await page.getByRole("button", { name: "Open or close door" }).click();
+  await page.getByRole("button", { name: "Flip side A/B" }).click();
   await expect(page.locator("#player")).toHaveClass(/flipping/);
   await expect(
-    page.getByRole("button", { name: "A/B面を裏返す" }),
+    page.getByRole("button", { name: "Flip side A/B" }),
   ).toBeDisabled();
-  await expect(page.getByRole("button", { name: "蓋を開閉" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Open or close door" })).toBeDisabled();
   await expect(page.locator("#side-label")).toHaveText("B");
   await expect(page.locator("#player")).not.toHaveClass(/flipping/);
   await expect(page.locator("#loaded-tape .tape-side")).toHaveText("B");
-  await page.getByRole("button", { name: "A/B面を裏返す" }).click();
+  await page.getByRole("button", { name: "Flip side A/B" }).click();
   await expect(page.locator("#side-label")).toHaveText("A");
   await expect(page.locator("#player")).not.toHaveClass(/flipping/);
 });
@@ -142,24 +142,24 @@ test("reduced motion flips without a long animation or a stuck interlock", async
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "蓋を開閉" }).click();
-  await page.getByRole("button", { name: "A/B面を裏返す" }).click();
+  await page.getByRole("button", { name: "Open or close door" }).click();
+  await page.getByRole("button", { name: "Flip side A/B" }).click();
   await expect(page.locator("#side-label")).toHaveText("B");
   await expect(page.locator("#player")).not.toHaveClass(/flipping/);
-  await expect(page.getByRole("button", { name: "蓋を開閉" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Open or close door" })).toBeEnabled();
 });
 test("rotating during FLIP restores the real tape and releases the operation lock", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "テープ棚を開く" }).click();
+  await page.getByRole("button", { name: "Open tape collection" }).click();
   await page.locator(".load-tape").first().click();
   await expect(page.locator("#status")).toHaveText("READY");
-  await page.getByRole("button", { name: "蓋を開閉" }).click();
-  await page.getByRole("button", { name: "A/B面を裏返す" }).click();
+  await page.getByRole("button", { name: "Open or close door" }).click();
+  await page.getByRole("button", { name: "Flip side A/B" }).click();
   await expect(page.locator(".flip-stage")).toBeVisible();
   await page.setViewportSize({ width: 844, height: 390 });
   await expect(page.locator(".flip-stage")).toHaveCount(0);
@@ -169,12 +169,12 @@ test("rotating during FLIP restores the real tape and releases the operation loc
     "visible",
   );
   await expect(
-    page.getByRole("button", { name: "A/B面を裏返す" }),
+    page.getByRole("button", { name: "Flip side A/B" }),
   ).toBeEnabled();
   const side = await page.locator("#side-label").textContent();
   await page.waitForTimeout(1200);
   await expect(page.locator("#side-label")).toHaveText(side);
-  await page.getByRole("button", { name: "A/B面を裏返す" }).click();
+  await page.getByRole("button", { name: "Flip side A/B" }).click();
   await expect(page.locator("#side-label")).toHaveText(
     side === "A" ? "B" : "A",
   );
@@ -188,13 +188,13 @@ test('generated navigation icons link to homepage, repository and sponsors in or
 });
 test('all service controls are on the case and closed-deck FLIP and EJECT sequence safely', async ({page})=>{
  await page.goto('/');
- for(const name of ['蓋を開閉','A/B面を裏返す','テープを取り出す']) expect(await page.getByRole('button',{name,exact:true}).evaluate(b=>!!b.closest('#player'))).toBe(true);
- await page.getByRole('button',{name:'テープ棚を開く'}).click();await page.locator('.load-tape').first().click();await expect(page.locator('#status')).toHaveText('READY');
- await page.getByRole('button',{name:'再生',exact:true}).click();await expect(page.locator('#status')).toContainText('PLAY');
- await page.getByRole('button',{name:'A/B面を裏返す'}).click();await expect(page.locator('.flip-stage')).toBeVisible();
+ for(const name of ['Open or close door','Flip side A/B','Eject tape']) expect(await page.getByRole('button',{name,exact:true}).evaluate(b=>!!b.closest('#player'))).toBe(true);
+ await page.getByRole('button',{name:'Open tape collection'}).click();await page.locator('.load-tape').first().click();await expect(page.locator('#status')).toHaveText('READY');
+ await page.getByRole('button',{name:'Play',exact:true}).click();await expect(page.locator('#status')).toContainText('PLAY');
+ await page.getByRole('button',{name:'Flip side A/B'}).click();await expect(page.locator('.flip-stage')).toBeVisible();
  await expect(page.locator('.flip-edge')).toHaveCount(4);
  await expect(page.locator('#side-label')).toHaveText('B');await expect(page.locator('#status')).toHaveText('READY');await expect(page.locator('#player')).not.toHaveClass(/door-open/);
- await page.getByRole('button',{name:'テープを取り出す'}).click();await expect(page.locator('#status')).toHaveText('NO TAPE');await expect(page.locator('#player')).toHaveClass(/door-open/);
+ await page.getByRole('button',{name:'Eject tape'}).click();await expect(page.locator('#status')).toHaveText('NO TAPE');await expect(page.locator('#player')).toHaveClass(/door-open/);
 });
 
 test('social preview is available in initial HTML without executing JavaScript', async ({ request }) => {
